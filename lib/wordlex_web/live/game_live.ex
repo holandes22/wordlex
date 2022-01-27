@@ -19,7 +19,7 @@ defmodule WordlexWeb.GameLive do
     <div phx-window-keydown="key">
       <div><%= @game.word %></div>
       <Game.tile_grid grid={@grid} />
-      <Game.keyboard />
+      <Game.keyboard letter_map={GameEngine.letter_map(@game)} />
     </div>
     """
   end

@@ -2,7 +2,7 @@ defmodule Wordlex.GameEngine do
   alias Wordlex.Game
 
   def new(word_to_guess) do
-    %{%Game{} | word: word_to_guess}
+    %{%Game{} | word: normalize(word_to_guess)}
   end
 
   def guesses_left(%Game{} = game) do
@@ -55,5 +55,25 @@ defmodule Wordlex.GameEngine do
 
   def resolve(%Game{} = game, _guess), do: game
 
-  defp normalize(guess) when is_binary(guess), do: String.downcase(guess)
+  def letter_map(%Game{guesses: guesses}) do
+    normalize = fn l -> l |> Enum.uniq() |> Enum.sort() end
+
+    map =
+      guesses
+      |> List.flatten()
+      |> Enum.reduce(%{correct: [], incorrect: [], invalid: []}, fn {char, state}, acc ->
+        case state do
+          :correct -> %{acc | correct: normalize.([char | acc.correct])}
+          :incorrect -> %{acc | incorrect: normalize.([char | acc.incorrect])}
+          :invalid -> %{acc | invalid: normalize.([char | acc.invalid])}
+        end
+      end)
+
+    # correct wins over incorrect, so if a letter appears in both,
+    # we need to remove it from that list
+    incorrect = Enum.filter(map.incorrect, fn letter -> !Enum.member?(map.correct, letter) end)
+    %{map | incorrect: incorrect}
+  end
+
+  defp normalize(guess) when is_binary(guess), do: String.upcase(guess)
 end

@@ -36,7 +36,7 @@ defmodule WordlexWeb.Components.Game do
       <div class="grid grid-cols-5 grid-rows-6 gap-2 place-content-evenly">
         <%= for guess <- @grid do  %>
           <%= for {char, condition} <- guess do  %>
-            <.tile char={char} condition={condition}/>
+            <.tile char={char} condition={condition} />
           <% end %>
         <% end %>
       </div>
@@ -54,24 +54,32 @@ defmodule WordlexWeb.Components.Game do
       |> Enum.map(&String.split/1)
 
     ~H"""
-
     <div class="flex flex-col items-center space-y-1">
       <%= for line <- lines do %>
-        <.keyboard_line letters={line} />
+        <div class="flex items-center space-x-1">
+          <%= for letter <- line do %>
+            <%= cond do  %>
+              <% Enum.member?(@letter_map.correct, letter) ->  %>
+                <.button bg_class={"bg-green-500"} letter={letter} />
+              <% Enum.member?(@letter_map.incorrect, letter) ->  %>
+                <.button bg_class={"bg-yellow-500"} letter={letter} />
+              <% Enum.member?(@letter_map.invalid, letter) ->  %>
+                <.button bg_class={"bg-gray-500"} letter={letter} />
+              <% true ->  %>
+                <.button bg_class={"bg-gray-300"} letter={letter} />
+            <% end %>
+          <% end %>
+        </div>
       <% end %>
     </div>
     """
   end
 
-  defp keyboard_line(assigns) do
+  defp button(assigns) do
     ~H"""
-    <div class="flex items-center space-x-1">
-      <%= for letter <- @letters do %>
-        <button class="p-4 rounded bg-gray-300 text-gray-900 text-xl flex justify-center items-center uppercase" phx-click="key" phx-value-key={letter}>
-          <%= letter %>
-        </button>
-      <% end %>
-    </div>
+    <button class={"p-4 rounded #{@bg_class} text-gray-800 text-xl flex justify-center items-center uppercase"} phx-click="key" phx-value-key={@letter}>
+      <%= @letter %>
+    </button>
     """
   end
 end
