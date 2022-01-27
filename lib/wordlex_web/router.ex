@@ -17,7 +17,7 @@ defmodule WordlexWeb.Router do
   scope "/", WordlexWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/", GameLive, :index
   end
 
   # Other scopes may use custom stacks.

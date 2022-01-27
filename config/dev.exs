@@ -16,6 +16,7 @@ config :wordlex, WordlexWeb.Endpoint,
   secret_key_base: "b1VJc7veN03zvvU4JYT97OK6enK+IgpM8kirB6PPTBjC0B9hP5KBCA9oJ0O7cTo5",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]},
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
   ]
 
@@ -50,6 +51,7 @@ config :wordlex, WordlexWeb.Endpoint,
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
       ~r"lib/wordlex_web/(live|views)/.*(ex)$",
+      ~r"lib/wordlex_web/live/components/.*(ex)$",
       ~r"lib/wordlex_web/templates/.*(eex)$"
     ]
   ]
