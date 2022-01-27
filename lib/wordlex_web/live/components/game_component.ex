@@ -31,12 +31,10 @@ defmodule WordlexWeb.Components.Game do
   end
 
   def tile_grid(assigns) do
-    grid = empty_grid() |> populate_grid(assigns.guesses)
-
     ~H"""
     <div class="w-[22rem]">
       <div class="grid grid-cols-5 grid-rows-6 gap-2 place-content-evenly">
-        <%= for guess <- grid do  %>
+        <%= for guess <- @grid do  %>
           <%= for {char, condition} <- guess do  %>
             <.tile char={char} condition={condition}/>
           <% end %>
@@ -47,21 +45,33 @@ defmodule WordlexWeb.Components.Game do
   end
 
   def keyboard(assigns) do
+    lines =
+      [
+        "Q W E R T Y U I O P",
+        "A S D F G H J K L",
+        "Enter Z X C V B N M Backspace"
+      ]
+      |> Enum.map(&String.split/1)
+
     ~H"""
+
+    <div class="flex flex-col items-center space-y-1">
+      <%= for line <- lines do %>
+        <.keyboard_line letters={line} />
+      <% end %>
+    </div>
     """
   end
 
-  defp empty_grid() do
-    {"", :empty} |> List.duplicate(5) |> List.duplicate(6)
-  end
-
-  defp populate_grid(grid, guesses) do
-    Enum.with_index(grid)
-    |> Enum.map(fn {row, index} ->
-      case Enum.fetch(guesses, index) do
-        :error -> row
-        {:ok, guess} -> guess
-      end
-    end)
+  defp keyboard_line(assigns) do
+    ~H"""
+    <div class="flex items-center space-x-1">
+      <%= for letter <- @letters do %>
+        <button class="p-4 rounded bg-gray-300 text-gray-900 text-xl flex justify-center items-center uppercase" phx-click="key" phx-value-key={letter}>
+          <%= letter %>
+        </button>
+      <% end %>
+    </div>
+    """
   end
 end
