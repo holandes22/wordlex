@@ -44,12 +44,10 @@ defmodule WordlexWeb.GameLive do
           </div>
         <% end %>
 
-        <%= @valid_guess? %>
-
         <div>
-          <Game.tile_grid grid={@grid} valid?={@valid_guess?}/>
+          <Game.tile_grid grid={@grid} valid_guess?={@valid_guess?}/>
           <%# TODO: remove word to guess %>
-          <div class="text-center"><%= @game.word %></div>
+          <div class="text-center"><%= @game.word %>, <%= @valid_guess? %></div>
         </div>
 
         <div class="mb-2">
