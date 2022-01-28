@@ -50,7 +50,7 @@ defmodule Wordlex.GameEngine do
         end
       end
 
-    %{game | result: result}
+    %{game | result: result, locked?: result != :playing}
   end
 
   def resolve(%Game{} = game, _guess), do: game

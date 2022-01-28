@@ -43,6 +43,10 @@ defmodule WordlexWeb.GameLive do
     """
   end
 
+  def handle_event("key", _params, %{assigns: %{game: %{locked?: true}}} = socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("key", %{"key" => "Backspace"}, socket) do
     {_element, next_guess} = List.pop_at(socket.assigns.next_guess, -1)
     guesses = Enum.reverse([pad_guess(next_guess) | socket.assigns.game.guesses])
@@ -50,27 +54,26 @@ defmodule WordlexWeb.GameLive do
     {:noreply, assign(socket, next_guess: next_guess, grid: grid)}
   end
 
+  def handle_event("key", %{"key" => "Enter"}, %{assigns: %{next_guess: guess}} = socket)
+      when length(guess) < 5 do
+    {:noreply, put_message(socket, "Not enough letters")}
+  end
+
   def handle_event("key", %{"key" => "Enter"}, socket) do
-    next_guess = socket.assigns.next_guess
+    guess = tiles_to_string(socket.assigns.next_guess)
+    game = GameEngine.resolve(socket.assigns.game, guess)
+    next_guess = []
+    guesses = Enum.reverse([pad_guess(next_guess) | game.guesses])
+    grid = populate_grid(guesses)
 
-    if length(next_guess) == 5 do
-      guess = socket.assigns.next_guess |> Enum.map(fn {char, _state} -> char end) |> Enum.join()
-      game = GameEngine.resolve(socket.assigns.game, guess)
-      next_guess = []
-      guesses = Enum.reverse([pad_guess(next_guess) | game.guesses])
-      grid = populate_grid(guesses)
+    socket =
+      if GameEngine.won?(game) do
+        put_message(socket, "Success!")
+      else
+        socket
+      end
 
-      socket =
-        if GameEngine.won?(game) do
-          put_message(socket, "Success!")
-        else
-          socket
-        end
-
-      {:noreply, assign(socket, game: game, grid: grid, next_guess: next_guess)}
-    else
-      {:noreply, put_message(socket, "Not enough letters")}
-    end
+    {:noreply, assign(socket, game: game, grid: grid, next_guess: next_guess)}
   end
 
   def handle_event("key", %{"key" => key}, socket) do
@@ -94,6 +97,10 @@ defmodule WordlexWeb.GameLive do
   defp put_message(socket, message) do
     Process.send_after(self(), :clear_message, 2000)
     put_flash(socket, :info, message)
+  end
+
+  defp tiles_to_string(tiles) do
+    tiles |> Enum.map(fn {char, _state} -> char end) |> Enum.join()
   end
 
   defp pad_guess(guess) do
