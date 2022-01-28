@@ -24,6 +24,12 @@ defmodule WordlexWeb.GameLive do
           <p class="p-1 text-md text-gray-400 font-medium">A <a href="https://powerlanguage.co.uk/wordle" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir</p>
         </div>
 
+        <%= if live_flash(@flash, :info) do %>
+          <div phx-click="lv:clear-flash" phx-value-key="info">
+            <Game.alert message={live_flash(@flash, :info)} />
+          </div>
+        <% end %>
+
         <div>
           <Game.tile_grid grid={@grid} />
           <%# TODO: remove word to guess %>
@@ -56,14 +62,14 @@ defmodule WordlexWeb.GameLive do
 
       socket =
         if GameEngine.won?(game) do
-          put_flash(socket, :info, "Success!")
+          put_message(socket, "Success!")
         else
           socket
         end
 
       {:noreply, assign(socket, game: game, grid: grid, next_guess: next_guess)}
     else
-      {:noreply, put_flash(socket, :error, "Guess should be complete")}
+      {:noreply, put_message(socket, "Not enough letters")}
     end
   end
 
@@ -81,6 +87,13 @@ defmodule WordlexWeb.GameLive do
       end
 
     {:noreply, socket}
+  end
+
+  def handle_info(:clear_message, socket), do: {:noreply, clear_flash(socket)}
+
+  defp put_message(socket, message) do
+    Process.send_after(self(), :clear_message, 2000)
+    put_flash(socket, :info, message)
   end
 
   defp pad_guess(guess) do

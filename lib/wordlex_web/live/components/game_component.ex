@@ -1,11 +1,21 @@
 defmodule WordlexWeb.Components.Game do
   use WordlexWeb, :component
 
+  def alert(assigns) do
+    ~H"""
+    <div class="rounded bg-gray-900 p-4">
+      <div class="flex items-center justify-center">
+        <p class="text-white text-xl"><%= @message %></p>
+      </div>
+    </div>
+    """
+  end
+
   def tile(assigns) do
     border_classes =
       case assigns.condition do
-        :empty -> "border-2 border-gray-400"
-        :try -> "border-2 border-gray-800"
+        :empty -> "border-2 border-gray-300"
+        :try -> "border-2 border-gray-500"
         _ -> ""
       end
 
