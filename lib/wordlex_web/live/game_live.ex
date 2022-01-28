@@ -4,7 +4,16 @@ defmodule WordlexWeb.GameLive do
   alias Wordlex.{GameEngine, WordServer}
   alias WordlexWeb.Components.Game
 
-  def mount(_params, _session, socket) do
+  @type tile_state() :: :empty | :try | :correct | :incorrect | :invalid
+  @type tile() :: {String.t(), tile_state()}
+  @type guess() :: list(tile())
+  @type grid() :: %{
+          past_guesses: list(guess()),
+          next_guess: guess() | nil,
+          remaining_guesses: list(guess())
+        }
+
+  def(mount(_params, _session, socket)) do
     word_to_guess = WordServer.word_to_guess()
     game = GameEngine.new(word_to_guess)
 
@@ -16,10 +25,7 @@ defmodule WordlexWeb.GameLive do
       |> GameEngine.resolve("aaaab")
       |> GameEngine.resolve("aaaab")
 
-    next_guess = []
-    guesses = Enum.reverse([pad_guess(next_guess) | game.guesses])
-    grid = populate_grid(guesses)
-    {:ok, assign(socket, game: game, grid: grid, next_guess: next_guess)}
+    {:ok, assign_state(socket, game, "")}
   end
 
   def render(assigns) do
@@ -38,8 +44,10 @@ defmodule WordlexWeb.GameLive do
           </div>
         <% end %>
 
+        <%= @valid_guess? %>
+
         <div>
-          <Game.tile_grid grid={@grid} />
+          <Game.tile_grid grid={@grid} valid?={@valid_guess?}/>
           <%# TODO: remove word to guess %>
           <div class="text-center"><%= @game.word %></div>
         </div>
@@ -56,23 +64,17 @@ defmodule WordlexWeb.GameLive do
   end
 
   def handle_event("key", %{"key" => "Backspace"}, socket) do
-    {_element, next_guess} = List.pop_at(socket.assigns.next_guess, -1)
-    guesses = Enum.reverse([pad_guess(next_guess) | socket.assigns.game.guesses])
-    grid = populate_grid(guesses)
-    {:noreply, assign(socket, next_guess: next_guess, grid: grid)}
+    guess_string = String.slice(socket.assigns.guess_string, 0..-2)
+    {:noreply, assign_state(socket, socket.assigns.game, guess_string)}
   end
 
-  def handle_event("key", %{"key" => "Enter"}, %{assigns: %{next_guess: guess}} = socket)
-      when length(guess) < 5 do
-    {:noreply, put_message(socket, "Not enough letters")}
+  def handle_event("key", %{"key" => "Enter"}, %{assigns: %{guess_string: guess}} = socket)
+      when byte_size(guess) < 5 do
+    {:noreply, assign(socket, valid_guess?: false) |> put_message("Not enough letters")}
   end
 
   def handle_event("key", %{"key" => "Enter"}, socket) do
-    guess = tiles_to_string(socket.assigns.next_guess)
-    game = GameEngine.resolve(socket.assigns.game, guess)
-    next_guess = []
-    guesses = Enum.reverse([pad_guess(next_guess) | game.guesses])
-    grid = populate_grid(guesses)
+    game = GameEngine.resolve(socket.assigns.game, socket.assigns.guess_string)
 
     socket =
       if GameEngine.won?(game) do
@@ -81,18 +83,16 @@ defmodule WordlexWeb.GameLive do
         socket
       end
 
-    {:noreply, assign(socket, game: game, grid: grid, next_guess: next_guess)}
+    {:noreply, assign_state(socket, game, "")}
   end
 
   def handle_event("key", %{"key" => key}, socket) do
-    next_guess = socket.assigns.next_guess
+    guess_string = socket.assigns.guess_string
 
     socket =
-      if String.match?(key, ~r/^[[:alpha:]]{1}$/) && length(next_guess) < 5 do
-        next_guess = next_guess ++ [{key, :try}]
-        guesses = Enum.reverse([pad_guess(next_guess) | socket.assigns.game.guesses])
-        grid = populate_grid(guesses)
-        assign(socket, key: key, grid: grid, next_guess: next_guess)
+      if String.match?(key, ~r/^[[:alpha:]]{1}$/) && byte_size(guess_string) < 5 do
+        guess_string = guess_string <> key
+        assign_state(socket, socket.assigns.game, guess_string)
       else
         socket
       end
@@ -100,33 +100,41 @@ defmodule WordlexWeb.GameLive do
     {:noreply, socket}
   end
 
-  def handle_info(:clear_message, socket), do: {:noreply, clear_flash(socket)}
+  def handle_info(:clear_message, socket),
+    do: {:noreply, assign(socket, valid_guess?: true) |> clear_flash()}
+
+  defp assign_state(socket, game, guess_string, valid_guess? \\ true) do
+    grid =
+      if game.locked? do
+        populate_grid(Enum.reverse(game.guesses), nil)
+      else
+        populate_grid(Enum.reverse(game.guesses), string_to_guess(guess_string))
+      end
+
+    assign(socket, game: game, guess_string: guess_string, grid: grid, valid_guess?: valid_guess?)
+  end
 
   defp put_message(socket, message) do
     Process.send_after(self(), :clear_message, 2000)
     put_flash(socket, :info, message)
   end
 
-  defp tiles_to_string(tiles) do
-    tiles |> Enum.map(fn {char, _state} -> char end) |> Enum.join()
-  end
-
-  defp pad_guess(guess) do
+  @spec string_to_guess(String.t()) :: guess()
+  defp string_to_guess(guess_string) do
+    guess = guess_string |> String.graphemes() |> Enum.map(fn char -> {char, :try} end)
     guess ++ List.duplicate({"", :empty}, 5 - length(guess))
   end
 
-  defp empty_grid() do
-    {"", :empty} |> List.duplicate(5) |> List.duplicate(6)
-  end
+  @spec empty_guess() :: guess()
+  defp empty_guess(), do: {"", :empty} |> List.duplicate(5)
 
-  defp populate_grid(guesses) do
-    empty_grid()
-    |> Enum.with_index()
-    |> Enum.map(fn {row, index} ->
-      case Enum.fetch(guesses, index) do
-        :error -> row
-        {:ok, guess} -> guess
-      end
-    end)
+  @spec empty_guesses(Integer.t()) :: list(guess())
+  defp empty_guesses(amount), do: List.duplicate(empty_guess(), amount)
+
+  @spec populate_grid(list(guess), guess() | nil) :: grid()
+  defp populate_grid(past_guesses, guess) do
+    amount = max(6 - length(past_guesses) - 1, 0)
+    remaining_guesses = empty_guesses(amount)
+    %{past_guesses: past_guesses, next_guess: guess, remaining_guesses: remaining_guesses}
   end
 end

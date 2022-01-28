@@ -33,8 +33,15 @@ defmodule WordlexWeb.Components.Game do
         _ -> "text-white"
       end
 
+    animation_class =
+      if assigns.valid? do
+        ""
+      else
+        "animate-shake"
+      end
+
     ~H"""
-    <div class={"w-10 h-10  #{bg_color} #{border_classes} flex justify-center items-center md:w-16 md:h-16"}>
+    <div class={"w-10 h-10 #{animation_class} #{bg_color} #{border_classes} flex justify-center items-center md:w-16 md:h-16"}>
       <div class={"text-xl uppercase #{text_color} font-bold md:text-3xl"}><%= @char %></div>
     </div>
     """
@@ -42,15 +49,23 @@ defmodule WordlexWeb.Components.Game do
 
   def tile_grid(assigns) do
     ~H"""
+    <div class="grid grid-cols-5 grid-rows-6 gap-1 place-content-evenly">
+      <.tiles guesses={@grid.past_guesses} valid?={true} />
+      <%= if @grid.next_guess do %>
+        <.tiles guesses={[@grid.next_guess]} valid?={@valid?} />
+      <% end %>
+      <.tiles guesses={@grid.remaining_guesses} valid?={true}/>
+    </div>
+    """
+  end
 
-      <div class="grid grid-cols-5 grid-rows-6 gap-1 place-content-evenly">
-        <%= for guess <- @grid do  %>
-          <%= for {char, state} <- guess do  %>
-            <.tile char={char} state={state} />
-          <% end %>
-        <% end %>
-      </div>
-
+  defp tiles(assigns) do
+    ~H"""
+    <%= for guess <- @guesses do  %>
+      <%= for {char, state} <- guess do  %>
+        <.tile char={char} state={state} valid?={@valid?} />
+      <% end %>
+    <% end %>
     """
   end
 
