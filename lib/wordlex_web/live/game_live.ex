@@ -30,7 +30,35 @@ defmodule WordlexWeb.GameLive do
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col items-center justify-between h-screen" phx-window-keydown="key">
+    <div
+        id="game"
+        phx-hook="AlpineDispatch"
+        x-data={"{
+          guess: '',
+          onKeyClicked( key ) {
+            if (key === 'Enter') {
+              this.onEnterPressed()
+            } else if (key === 'Backspace') {
+              this.onBackspacePressed()
+            } else {
+              this.onCharPressed( key )
+            }
+          },
+          onCharPressed( char ) {
+            if(this.guess.length < 5) {
+              this.guess = this.guess + char
+            }
+
+          },
+          onBackspacePressed() {
+            this.guess = this.guess.slice(0, -1)
+          },
+          onEnterPressed() {
+            $dispatch('alpine:event', { event: 'submit', payload: { guess: this.guess } })
+          }
+        }"}
+        class="flex flex-col items-center justify-between h-screen"
+    >
         <div class="flex flex-col items-center">
           <div class="w-screen border-b border-gray-300 md:w-96">
             <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
@@ -51,7 +79,7 @@ defmodule WordlexWeb.GameLive do
         <% end %>
 
         <div>
-          <Game.tile_grid grid={@grid} valid_guess?={@error_message == nil} revealing?={length(@grid.past_guesses) > 0} />
+          <Game.tile_grid grid={@grid} valid_guess?={@error_message == nil} revealing?={length(@grid.past_guesses) > 0}  locked?={@game.locked?} />
           <%# TODO: remove word to guess %>
           <div class="text-center"><%= @game.word %></div>
         </div>
@@ -63,22 +91,17 @@ defmodule WordlexWeb.GameLive do
     """
   end
 
-  def handle_event("key", _params, %{assigns: %{game: %{locked?: true}}} = socket) do
+  def handle_event("submit", _params, %{assigns: %{game: %{locked?: true}}} = socket) do
     {:noreply, socket}
   end
 
-  def handle_event("key", %{"key" => "Backspace"}, socket) do
-    guess_string = String.slice(socket.assigns.guess_string, 0..-2)
-    {:noreply, assign_state(socket, socket.assigns.game, guess_string)}
-  end
-
-  def handle_event("key", %{"key" => "Enter"}, %{assigns: %{guess_string: guess}} = socket)
-      when byte_size(guess) < 5 do
+  def handle_event("submit", %{"guess" => guess_string}, socket)
+      when byte_size(guess_string) < 5 do
     {:noreply, put_message(socket, "Not enough letters")}
   end
 
-  def handle_event("key", %{"key" => "Enter"}, socket) do
-    game = GameEngine.resolve(socket.assigns.game, socket.assigns.guess_string)
+  def handle_event("submit", %{"guess" => guess_string}, socket) do
+    game = GameEngine.resolve(socket.assigns.game, guess_string)
     {:noreply, assign_state(socket, game, "")}
   end
 

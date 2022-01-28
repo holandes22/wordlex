@@ -11,6 +11,14 @@ defmodule WordlexWeb.Components.Game do
     """
   end
 
+  def guess_tile(assigns) do
+    ~H"""
+    <div class="w-10 h-10 border-2 bg-white text-gray-800 flex justify-center items-center md:w-16 md:h-16" :class={"guess[#{@index}] ? 'border-gray-500' : 'border-gray-300'"}>
+      <div class="text-xl uppercase text-gray-80 font-bold md:text-3xl" x-text={"guess[#{@index}]"}></div>
+    </div>
+    """
+  end
+
   def tile(assigns) do
     border_classes =
       case assigns.state do
@@ -50,9 +58,9 @@ defmodule WordlexWeb.Components.Game do
         <.tile_rows guesses={@grid.past_guesses} valid?={true} />
       <% end %>
 
-      <%= if @grid.next_guess do %>
-        <.tile_rows guesses={[@grid.next_guess]} animate_class={if(@valid_guess?, do: "", else: "animate-shake")} />
-      <% end %>
+      <%= if not @locked? do %>
+        <.tile_rows guesses={[@grid.next_guess]} is_guess?={true} animate_class={if(@valid_guess?, do: "", else: "animate-shake")} />
+      <% end  %>
 
       <.tile_rows guesses={@grid.remaining_guesses} />
     </div>
@@ -63,8 +71,14 @@ defmodule WordlexWeb.Components.Game do
     ~H"""
     <%= for guess <- @guesses do  %>
       <div class={"grid grid-cols-5 gap-1 place-content-evenly #{assigns[:animate_class] || ""}"}>
-        <%= for {char, state} <- guess do  %>
-          <.tile char={char} state={state} />
+        <%= if assigns[:is_guess?]  do %>
+          <%= for index <- 0..4 do  %>
+            <.guess_tile index={index} />
+          <% end %>
+        <% else %>
+          <%= for {char, state} <- guess do  %>
+            <.tile char={char} state={state} />
+          <% end %>
         <% end %>
       </div>
     <% end %>
@@ -104,7 +118,9 @@ defmodule WordlexWeb.Components.Game do
 
   defp button(assigns) do
     ~H"""
-    <button class={"p-2 rounded #{@bg_class} text-gray-800 text-md flex justify-center items-center uppercase md:p-4"} phx-click="key" phx-value-key={@letter}>
+    <button
+      x-on:click={"onKeyClicked('#{@letter}')"}
+      class={"p-2 rounded #{@bg_class} text-gray-800 text-md flex justify-center items-center uppercase md:p-4"} phx-click="key" phx-value-key={@letter}>
       <%= @letter %>
     </button>
     """
