@@ -43,11 +43,18 @@ defmodule WordlexWeb.Components.Game do
   def tile_grid(assigns) do
     ~H"""
     <div class="grid grid-rows-6 gap-1 place-content-evenly">
-      <.tile_rows guesses={@grid.past_guesses} valid?={true} />
+      <%= if @revealing? do %>
+        <.tile_rows guesses={Enum.slice(@grid.past_guesses, 0..-2)} />
+        <.tile_rows guesses={[List.last(@grid.past_guesses)]} animate_class="animate-flip" />
+      <% else %>
+        <.tile_rows guesses={@grid.past_guesses} valid?={true} />
+      <% end %>
+
       <%= if @grid.next_guess do %>
         <.tile_rows guesses={[@grid.next_guess]} animate_class={if(@valid_guess?, do: "", else: "animate-shake")} />
       <% end %>
-      <.tile_rows guesses={@grid.remaining_guesses} valid?={true}/>
+
+      <.tile_rows guesses={@grid.remaining_guesses} />
     </div>
     """
   end

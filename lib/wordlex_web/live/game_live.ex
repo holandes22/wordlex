@@ -38,16 +38,22 @@ defmodule WordlexWeb.GameLive do
           <p class="p-1 text-md text-gray-400 font-medium">A <a href="https://powerlanguage.co.uk/wordle" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir</p>
         </div>
 
-        <%= if live_flash(@flash, :info) do %>
-          <div phx-click="lv:clear-flash" phx-value-key="info">
-            <Game.alert message={live_flash(@flash, :info)} />
-          </div>
+        <%= if @error_message do %>
+          <Game.alert message={@error_message} />
+        <% end %>
+
+        <%= if GameEngine.won?(@game) do %>
+          <span>WINNER!</span>
+        <% end %>
+
+        <%= if GameEngine.guesses_left(@game) == 0 do %>
+          <span>No more guesses!</span>
         <% end %>
 
         <div>
-          <Game.tile_grid grid={@grid} valid_guess?={@valid_guess?}/>
+          <Game.tile_grid grid={@grid} valid_guess?={@error_message == nil} revealing?={length(@grid.past_guesses) > 0} />
           <%# TODO: remove word to guess %>
-          <div class="text-center"><%= @game.word %>, <%= @valid_guess? %></div>
+          <div class="text-center"><%= @game.word %></div>
         </div>
 
         <div class="mb-2">
@@ -68,19 +74,11 @@ defmodule WordlexWeb.GameLive do
 
   def handle_event("key", %{"key" => "Enter"}, %{assigns: %{guess_string: guess}} = socket)
       when byte_size(guess) < 5 do
-    {:noreply, assign(socket, valid_guess?: false) |> put_message("Not enough letters")}
+    {:noreply, put_message(socket, "Not enough letters")}
   end
 
   def handle_event("key", %{"key" => "Enter"}, socket) do
     game = GameEngine.resolve(socket.assigns.game, socket.assigns.guess_string)
-
-    socket =
-      if GameEngine.won?(game) do
-        put_message(socket, "Success!")
-      else
-        socket
-      end
-
     {:noreply, assign_state(socket, game, "")}
   end
 
@@ -99,9 +97,9 @@ defmodule WordlexWeb.GameLive do
   end
 
   def handle_info(:clear_message, socket),
-    do: {:noreply, assign(socket, valid_guess?: true) |> clear_flash()}
+    do: {:noreply, assign(socket, error_message: nil)}
 
-  defp assign_state(socket, game, guess_string, valid_guess? \\ true) do
+  defp assign_state(socket, game, guess_string, error_message \\ nil) do
     grid =
       if game.locked? do
         populate_grid(Enum.reverse(game.guesses), nil)
@@ -109,17 +107,23 @@ defmodule WordlexWeb.GameLive do
         populate_grid(Enum.reverse(game.guesses), string_to_guess(guess_string))
       end
 
-    assign(socket, game: game, guess_string: guess_string, grid: grid, valid_guess?: valid_guess?)
+    assign(socket,
+      game: game,
+      guess_string: guess_string,
+      grid: grid,
+      error_message: error_message
+    )
   end
 
   defp put_message(socket, message) do
     Process.send_after(self(), :clear_message, 2000)
-    put_flash(socket, :info, message)
+    assign(socket, error_message: message)
   end
 
   @spec string_to_guess(String.t()) :: guess()
   defp string_to_guess(guess_string) do
     guess = guess_string |> String.graphemes() |> Enum.map(fn char -> {char, :try} end)
+    # Pad with empty tiles if needed
     guess ++ List.duplicate({"", :empty}, 5 - length(guess))
   end
 

@@ -5,6 +5,11 @@ module.exports = {
   theme: {
     extend: {
       keyframes: {
+        flip: {
+          "0%, 30%": {
+            transform: "rotateY(180deg) ",
+          },
+        },
         shake: {
           "10%, 90%": {
             transform: "translate3d(-1px, 0, 0)",
@@ -22,6 +27,7 @@ module.exports = {
       },
       animation: {
         shake: "shake 0.5s ease-in-out",
+        flip: "flip 1s ease-in-out",
       },
     },
   },
