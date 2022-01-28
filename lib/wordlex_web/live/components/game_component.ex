@@ -70,13 +70,13 @@ defmodule WordlexWeb.Components.Game do
           <%= for letter <- line do %>
             <%= cond do  %>
               <% Enum.member?(@letter_map.correct, letter) ->  %>
-                <.button bg_class={"bg-green-500"} letter={letter} />
+                <.button bg_class={"bg-green-500 hover:bg-green-400"} letter={letter} />
               <% Enum.member?(@letter_map.incorrect, letter) ->  %>
-                <.button bg_class={"bg-yellow-500"} letter={letter} />
+                <.button bg_class={"bg-yellow-500 hover:bg-yellow-400"} letter={letter} />
               <% Enum.member?(@letter_map.invalid, letter) ->  %>
-                <.button bg_class={"bg-gray-500"} letter={letter} />
+                <.button bg_class={"bg-gray-500 hover:bg-gray-400"} letter={letter} />
               <% true ->  %>
-                <.button bg_class={"bg-gray-300"} letter={letter} />
+                <.button bg_class={"bg-gray-300 hover:bg-gray-200"} letter={letter} />
             <% end %>
           <% end %>
         </div>
