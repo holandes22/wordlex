@@ -10,7 +10,7 @@ defmodule Wordlex.GameEngine do
   end
 
   def winner?(tiles) do
-    tiles |> Enum.map(fn {_char, condition} -> condition == :correct end) |> Enum.all?()
+    tiles |> Enum.map(fn {_char, state} -> state == :correct end) |> Enum.all?()
   end
 
   def won?(game), do: game.result == :won

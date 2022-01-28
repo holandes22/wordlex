@@ -13,14 +13,14 @@ defmodule WordlexWeb.Components.Game do
 
   def tile(assigns) do
     border_classes =
-      case assigns.condition do
+      case assigns.state do
         :empty -> "border-2 border-gray-300"
         :try -> "border-2 border-gray-500"
         _ -> ""
       end
 
     bg_color =
-      case assigns.condition do
+      case assigns.state do
         :correct -> "bg-green-500"
         :incorrect -> "bg-yellow-500"
         :invalid -> "bg-gray-500"
@@ -28,7 +28,7 @@ defmodule WordlexWeb.Components.Game do
       end
 
     text_color =
-      case assigns.condition do
+      case assigns.state do
         :try -> "text-gray-800"
         _ -> "text-white"
       end
@@ -45,8 +45,8 @@ defmodule WordlexWeb.Components.Game do
 
       <div class="grid grid-cols-5 grid-rows-6 gap-1 place-content-evenly">
         <%= for guess <- @grid do  %>
-          <%= for {char, condition} <- guess do  %>
-            <.tile char={char} condition={condition} />
+          <%= for {char, state} <- guess do  %>
+            <.tile char={char} state={state} />
           <% end %>
         <% end %>
       </div>

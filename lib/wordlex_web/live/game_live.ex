@@ -7,7 +7,15 @@ defmodule WordlexWeb.GameLive do
   def mount(_params, _session, socket) do
     word_to_guess = WordServer.word_to_guess()
     game = GameEngine.new(word_to_guess)
-    game = game |> GameEngine.resolve("tugre") |> GameEngine.resolve("flock")
+
+    game =
+      game
+      |> GameEngine.resolve("tugre")
+      |> GameEngine.resolve("flock")
+      |> GameEngine.resolve("aaaab")
+      |> GameEngine.resolve("aaaab")
+      |> GameEngine.resolve("aaaab")
+
     next_guess = []
     guesses = Enum.reverse([pad_guess(next_guess) | game.guesses])
     grid = populate_grid(guesses)
