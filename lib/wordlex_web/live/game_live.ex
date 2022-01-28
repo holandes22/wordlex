@@ -16,10 +16,23 @@ defmodule WordlexWeb.GameLive do
 
   def render(assigns) do
     ~H"""
-    <div phx-window-keydown="key">
-      <div><%= @game.word %></div>
-      <Game.tile_grid grid={@grid} />
-      <Game.keyboard letter_map={GameEngine.letter_map(@game)} />
+    <div class="flex flex-col items-center justify-between h-screen" phx-window-keydown="key">
+        <div class="flex flex-col items-center">
+          <div class="w-screen border-b border-gray-300 md:w-96">
+            <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
+          </div>
+          <p class="p-1 text-md text-gray-400 font-medium">A <a href="https://powerlanguage.co.uk/wordle" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir</p>
+        </div>
+
+        <div>
+          <Game.tile_grid grid={@grid} />
+          <%# TODO: remove word to guess %>
+          <div class="text-center"><%= @game.word %></div>
+        </div>
+
+        <div class="mb-2">
+          <Game.keyboard letter_map={GameEngine.letter_map(@game)} />
+        </div>
     </div>
     """
   end

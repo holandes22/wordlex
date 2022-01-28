@@ -24,23 +24,23 @@ defmodule WordlexWeb.Components.Game do
       end
 
     ~H"""
-    <div class={"p-2 w-16 h-16  #{bg_color} #{border_classes} flex justify-center items-center"}>
-      <div class={"uppercase #{text_color} font-bold text-3xl"}><%= @char %></div>
+    <div class={"w-10 h-10  #{bg_color} #{border_classes} flex justify-center items-center md:w-16 md:h-16"}>
+      <div class={"text-xl uppercase #{text_color} font-bold md:text-3xl"}><%= @char %></div>
     </div>
     """
   end
 
   def tile_grid(assigns) do
     ~H"""
-    <div class="w-[22rem]">
-      <div class="grid grid-cols-5 grid-rows-6 gap-2 place-content-evenly">
+
+      <div class="grid grid-cols-5 grid-rows-6 gap-1 place-content-evenly">
         <%= for guess <- @grid do  %>
           <%= for {char, condition} <- guess do  %>
             <.tile char={char} condition={condition} />
           <% end %>
         <% end %>
       </div>
-    </div>
+
     """
   end
 
@@ -77,7 +77,7 @@ defmodule WordlexWeb.Components.Game do
 
   defp button(assigns) do
     ~H"""
-    <button class={"p-4 rounded #{@bg_class} text-gray-800 text-xl flex justify-center items-center uppercase"} phx-click="key" phx-value-key={@letter}>
+    <button class={"p-2 rounded #{@bg_class} text-gray-800 text-md flex justify-center items-center uppercase md:p-4"} phx-click="key" phx-value-key={@letter}>
       <%= @letter %>
     </button>
     """
