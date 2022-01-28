@@ -124,19 +124,19 @@ defmodule WordlexWeb.GameLive do
   defp string_to_guess(guess_string) do
     guess = guess_string |> String.graphemes() |> Enum.map(fn char -> {char, :try} end)
     # Pad with empty tiles if needed
-    guess ++ List.duplicate({"", :empty}, 5 - length(guess))
+    guess ++ empty_guess(5 - length(guess))
   end
 
-  @spec empty_guess() :: guess()
-  defp empty_guess(), do: {"", :empty} |> List.duplicate(5)
+  @spec empty_guess(Integer.t()) :: guess()
+  defp empty_guess(tile_count \\ 5), do: List.duplicate({"", :empty}, tile_count)
 
   @spec empty_guesses(Integer.t()) :: list(guess())
-  defp empty_guesses(amount), do: List.duplicate(empty_guess(), amount)
+  defp empty_guesses(guess_count), do: List.duplicate(empty_guess(), guess_count)
 
   @spec populate_grid(list(guess), guess() | nil) :: grid()
   defp populate_grid(past_guesses, guess) do
-    amount = max(6 - length(past_guesses) - 1, 0)
-    remaining_guesses = empty_guesses(amount)
+    guess_count = max(6 - length(past_guesses) - 1, 0)
+    remaining_guesses = empty_guesses(guess_count)
     %{past_guesses: past_guesses, next_guess: guess, remaining_guesses: remaining_guesses}
   end
 end
