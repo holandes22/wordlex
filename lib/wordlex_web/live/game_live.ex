@@ -4,12 +4,11 @@ defmodule WordlexWeb.GameLive do
   alias Wordlex.{GameEngine, WordServer}
   alias WordlexWeb.Components.Game
 
-  @type tile_state() :: :empty | :try | :correct | :incorrect | :invalid
+  @type tile_state() :: :empty | :correct | :incorrect | :invalid
   @type tile() :: {String.t(), tile_state()}
   @type guess() :: list(tile())
   @type grid() :: %{
           past_guesses: list(guess()),
-          next_guess: guess() | nil,
           remaining_guesses: list(guess())
         }
 
@@ -24,7 +23,7 @@ defmodule WordlexWeb.GameLive do
       |> GameEngine.resolve("aaaab")
       |> GameEngine.resolve("aaaab")
 
-    {:ok, assign_state(socket, game, "")}
+    {:ok, assign_state(socket, game) |> assign(revealing?: false)}
   end
 
   def render(assigns) do
@@ -55,7 +54,12 @@ defmodule WordlexWeb.GameLive do
         <% end %>
 
         <div>
-          <Game.tile_grid grid={@grid} valid_guess?={@error_message == nil} revealing?={length(@grid.past_guesses) > 0}  locked?={@game.locked?} />
+          <Game.tile_grid
+            grid={@grid}
+            valid_guess?={@error_message == nil}
+            revealing?={length(@grid.past_guesses) > 0 && @revealing?}
+            locked?={@game.locked?}
+          />
           <%# TODO: remove word to guess %>
           <div class="text-center"><%= @game.word %></div>
         </div>
@@ -73,44 +77,26 @@ defmodule WordlexWeb.GameLive do
 
   def handle_event("submit", %{"guess" => guess_string}, socket)
       when byte_size(guess_string) < 5 do
-    {:noreply, put_message(socket, "Not enough letters")}
+    {:noreply, put_message(socket, "Not enough letters") |> assign(revealing?: false)}
   end
 
   def handle_event("submit", %{"guess" => guess_string}, socket) do
     game = GameEngine.resolve(socket.assigns.game, guess_string)
 
     {:noreply,
-     assign_state(socket, game, "") |> Phoenix.LiveView.push_event("app:resetGuess", %{})}
-  end
-
-  def handle_event("key", %{"key" => key}, socket) do
-    guess_string = socket.assigns.guess_string
-
-    socket =
-      if String.match?(key, ~r/^[[:alpha:]]{1}$/) && byte_size(guess_string) < 5 do
-        guess_string = guess_string <> key
-        assign_state(socket, socket.assigns.game, guess_string)
-      else
-        socket
-      end
-
-    {:noreply, socket}
+     assign_state(socket, game)
+     |> assign(revealing?: true)
+     |> Phoenix.LiveView.push_event("app:resetGuess", %{})}
   end
 
   def handle_info(:clear_message, socket),
     do: {:noreply, assign(socket, error_message: nil)}
 
-  defp assign_state(socket, game, guess_string, error_message \\ nil) do
-    grid =
-      if game.locked? do
-        populate_grid(Enum.reverse(game.guesses), nil)
-      else
-        populate_grid(Enum.reverse(game.guesses), string_to_guess(guess_string))
-      end
+  defp assign_state(socket, game, error_message \\ nil) do
+    grid = populate_grid(Enum.reverse(game.guesses))
 
     assign(socket,
       game: game,
-      guess_string: guess_string,
       grid: grid,
       error_message: error_message
     )
@@ -121,23 +107,17 @@ defmodule WordlexWeb.GameLive do
     assign(socket, error_message: message)
   end
 
-  @spec string_to_guess(String.t()) :: guess()
-  defp string_to_guess(guess_string) do
-    guess = guess_string |> String.graphemes() |> Enum.map(fn char -> {char, :try} end)
-    # Pad with empty tiles if needed
-    guess ++ empty_guess(5 - length(guess))
-  end
-
   @spec empty_guess(Integer.t()) :: guess()
   defp empty_guess(tile_count \\ 5), do: List.duplicate({"", :empty}, tile_count)
 
   @spec empty_guesses(Integer.t()) :: list(guess())
   defp empty_guesses(guess_count), do: List.duplicate(empty_guess(), guess_count)
 
-  @spec populate_grid(list(guess), guess() | nil) :: grid()
-  defp populate_grid(past_guesses, guess) do
+  @spec populate_grid(list(guess)) :: grid()
+  defp populate_grid(past_guesses) do
+    # need to account for the guess input line, so we remove an extra one
     guess_count = max(6 - length(past_guesses) - 1, 0)
     remaining_guesses = empty_guesses(guess_count)
-    %{past_guesses: past_guesses, next_guess: guess, remaining_guesses: remaining_guesses}
+    %{past_guesses: past_guesses, remaining_guesses: remaining_guesses}
   end
 end

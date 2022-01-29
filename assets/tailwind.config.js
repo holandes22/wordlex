@@ -6,7 +6,7 @@ module.exports = {
     extend: {
       keyframes: {
         flip: {
-          "20%, 90%": {
+          "20%, 40%": {
             transform: "rotateY(90deg) ",
           },
         },
@@ -27,7 +27,7 @@ module.exports = {
       },
       animation: {
         shake: "shake 0.5s ease-in-out",
-        flip: "flip 1s linear",
+        flip: "flip 0.8s ease-in-out",
       },
     },
   },

@@ -31,13 +31,6 @@ let csrfToken = document
   .getAttribute("content");
 
 let Hooks = { KeyboardInput };
-Hooks.AlpineDispatch = {
-  mounted() {
-    this.el.addEventListener("alpine:event", (event) => {
-      this.pushEvent(event.detail.event, event.detail.payload);
-    });
-  },
-};
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
