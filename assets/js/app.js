@@ -24,12 +24,13 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
+import KeyboardInput from "./hooks/keyboard_input";
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
-let Hooks = {};
+let Hooks = { KeyboardInput };
 Hooks.AlpineDispatch = {
   mounted() {
     this.el.addEventListener("alpine:event", (event) => {
@@ -41,13 +42,6 @@ Hooks.AlpineDispatch = {
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   hooks: Hooks,
-  dom: {
-    onBeforeElUpdated(from, to) {
-      if (from._x_dataStack) {
-        window.Alpine.clone(from, to);
-      }
-    },
-  },
 });
 
 // Show progress bar on live navigation and form submits

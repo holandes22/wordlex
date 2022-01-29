@@ -97,6 +97,7 @@ defmodule WordlexWeb do
 
       import WordlexWeb.ErrorHelpers
       import WordlexWeb.Gettext
+      alias Phoenix.LiveView.JS
       alias WordlexWeb.Router.Helpers, as: Routes
     end
   end

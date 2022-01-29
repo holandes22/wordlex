@@ -13,8 +13,8 @@ defmodule WordlexWeb.Components.Game do
 
   def guess_tile(assigns) do
     ~H"""
-    <div class="w-10 h-10 border-2 bg-white text-gray-800 flex justify-center items-center md:w-16 md:h-16" :class={"guess[#{@index}] ? 'border-gray-500' : 'border-gray-300'"}>
-      <div class="text-xl uppercase text-gray-80 font-bold md:text-3xl" x-text={"guess[#{@index}]"}></div>
+    <div id={"input-tile-#{@index}"} class="w-10 h-10 border-2 bg-white text-gray-800 flex justify-center items-center md:w-16 md:h-16">
+      <div class="text-xl uppercase text-gray-80 font-bold md:text-3xl"></div>
     </div>
     """
   end
@@ -73,7 +73,7 @@ defmodule WordlexWeb.Components.Game do
       <div class={"grid grid-cols-5 gap-1 place-content-evenly #{assigns[:animate_class] || ""}"}>
         <%= if assigns[:is_guess?]  do %>
           <%= for index <- 0..4 do  %>
-            <.guess_tile index={index} />
+              <.guess_tile index={index} />
           <% end %>
         <% else %>
           <%= for {char, state} <- guess do  %>
@@ -119,7 +119,7 @@ defmodule WordlexWeb.Components.Game do
   defp button(assigns) do
     ~H"""
     <button
-      x-on:click={"onKeyClicked('#{@letter}')"}
+      phx-click={JS.dispatch("app:keyClicked", to: "#game", detail: %{ key: @letter })}
       class={"p-2 rounded #{@bg_class} text-gray-800 text-md flex justify-center items-center uppercase md:p-4"} phx-click="key" phx-value-key={@letter}>
       <%= @letter %>
     </button>

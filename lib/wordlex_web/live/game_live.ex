@@ -23,7 +23,6 @@ defmodule WordlexWeb.GameLive do
       |> GameEngine.resolve("flock")
       |> GameEngine.resolve("aaaab")
       |> GameEngine.resolve("aaaab")
-      |> GameEngine.resolve("aaaab")
 
     {:ok, assign_state(socket, game, "")}
   end
@@ -32,33 +31,10 @@ defmodule WordlexWeb.GameLive do
     ~H"""
     <div
         id="game"
-        phx-hook="AlpineDispatch"
-        x-data={"{
-          guess: '',
-          onKeyClicked( key ) {
-            if (key === 'Enter') {
-              this.onEnterPressed()
-            } else if (key === 'Backspace') {
-              this.onBackspacePressed()
-            } else {
-              this.onCharPressed( key )
-            }
-          },
-          onCharPressed( char ) {
-            if(this.guess.length < 5) {
-              this.guess = this.guess + char
-            }
-
-          },
-          onBackspacePressed() {
-            this.guess = this.guess.slice(0, -1)
-          },
-          onEnterPressed() {
-            $dispatch('alpine:event', { event: 'submit', payload: { guess: this.guess } })
-          }
-        }"}
+        phx-hook="KeyboardInput"
         class="flex flex-col items-center justify-between h-screen"
     >
+
         <div class="flex flex-col items-center">
           <div class="w-screen border-b border-gray-300 md:w-96">
             <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
@@ -102,7 +78,9 @@ defmodule WordlexWeb.GameLive do
 
   def handle_event("submit", %{"guess" => guess_string}, socket) do
     game = GameEngine.resolve(socket.assigns.game, guess_string)
-    {:noreply, assign_state(socket, game, "")}
+
+    {:noreply,
+     assign_state(socket, game, "") |> Phoenix.LiveView.push_event("app:resetGuess", %{})}
   end
 
   def handle_event("key", %{"key" => key}, socket) do
