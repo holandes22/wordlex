@@ -13,7 +13,7 @@ defmodule WordlexWeb.Components.Game do
 
   def guess_tile(assigns) do
     ~H"""
-    <div id={"input-tile-#{@index}"} class="w-10 h-10 border-2 bg-white text-gray-800 flex justify-center items-center md:w-16 md:h-16">
+    <div id={"input-tile-#{@index}"} class="w-10 h-10 border-2 border-gray-300 bg-white text-gray-800 flex justify-center items-center md:w-16 md:h-16">
       <div class="text-xl uppercase text-gray-80 font-bold md:text-3xl"></div>
     </div>
     """

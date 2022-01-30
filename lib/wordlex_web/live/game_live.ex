@@ -4,6 +4,8 @@ defmodule WordlexWeb.GameLive do
   alias Wordlex.{GameEngine, WordServer}
   alias WordlexWeb.Components.Game
 
+  @session_key "app:session"
+
   @type tile_state() :: :empty | :correct | :incorrect | :invalid
   @type tile() :: {String.t(), tile_state()}
   @type guess() :: list(tile())
@@ -13,22 +15,25 @@ defmodule WordlexWeb.GameLive do
         }
 
   def(mount(_params, _session, socket)) do
-    word_to_guess = WordServer.word_to_guess()
-    game = GameEngine.new(word_to_guess)
-
     game =
-      game
-      |> GameEngine.resolve("tugre")
-      |> GameEngine.resolve("flock")
-      |> GameEngine.resolve("aaaab")
-      |> GameEngine.resolve("aaaab")
+      case get_connect_params(socket) do
+        # Socket not connected yet
+        nil ->
+          WordServer.word_to_guess() |> GameEngine.new()
 
-    {:ok, assign_state(socket, game) |> assign(revealing?: false)}
+        %{"restore" => nil} ->
+          WordServer.word_to_guess() |> GameEngine.new()
+
+        %{"restore" => data} ->
+          data |> Jason.decode!() |> GameEngine.deserialize()
+      end
+
+    {:ok, assign_state(socket, game) |> assign(revealing?: true)}
   end
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col items-center justify-between h-screen">
+    <div id="game" phx-hook="Session" class="flex flex-col items-center justify-between h-screen">
         <div class="flex flex-col items-center">
           <div class="w-screen border-b border-gray-300 md:w-96">
             <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
@@ -77,6 +82,14 @@ defmodule WordlexWeb.GameLive do
 
   def handle_event("submit", %{"guess" => guess_string}, socket) do
     game = GameEngine.resolve(socket.assigns.game, guess_string)
+    serialized_game = GameEngine.serialize(game) |> Jason.encode!()
+
+    socket =
+      if game.over? do
+        push_event(socket, "session:clear", %{key: @session_key})
+      else
+        push_event(socket, "session:store", %{key: @session_key, data: serialized_game})
+      end
 
     {:noreply,
      assign_state(socket, game)

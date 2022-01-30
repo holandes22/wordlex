@@ -2,7 +2,24 @@ defmodule Wordlex.GameEngine do
   alias Wordlex.Game
 
   def new(word_to_guess) do
-    %{%Game{} | word: normalize(word_to_guess)}
+    word_to_guess |> normalize() |> Game.new()
+  end
+
+  @spec serialize(Game.t()) :: %{}
+  def serialize(%Game{guesses: guesses} = game) do
+    guesses =
+      Enum.map(guesses, fn guess ->
+        Enum.reduce(guess, "", fn {char, _state}, acc -> acc <> char end)
+      end)
+
+    %{game | guesses: guesses}
+  end
+
+  @spec deserialize(%{}) :: Game.t()
+  def deserialize(%{"guesses" => guesses, "word" => word} = _params) do
+    guesses
+    |> Enum.reverse()
+    |> Enum.reduce(Game.new(word), fn guess, game -> resolve(game, guess) end)
   end
 
   def guesses_left(%Game{} = game) do
@@ -36,6 +53,7 @@ defmodule Wordlex.GameEngine do
   end
 
   def resolve(%Game{result: :playing} = game, guess) do
+    guess = normalize(guess)
     tiles = analyze(game, guess)
     game = %{game | guesses: [tiles] ++ game.guesses}
 
