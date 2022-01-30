@@ -87,9 +87,9 @@ defmodule WordlexWeb.Components.Game do
     ]
 
     ~H"""
-    <div class="flex flex-col items-center space-y-1">
+    <div class="flex flex-col items-center space-y-1 md:space-y-2">
       <%= for line <- lines do %>
-        <div class="flex items-center space-x-1">
+        <div class="flex items-center space-x-1 md:space-x-2">
           <%= for key <- line do %>
             <.key letter_map={@letter_map} key={key} />
           <% end %>
@@ -104,8 +104,28 @@ defmodule WordlexWeb.Components.Game do
       cond do
         Enum.member?(letter_map.correct, key) -> "bg-green-500 hover:bg-green-400"
         Enum.member?(letter_map.incorrect, key) -> "bg-yellow-500 hover:bg-yellow-400"
-        Enum.member?(letter_map.invalid, key) -> "bg-gray-500 hover:bg-gray-400"
+        Enum.member?(letter_map.invalid, key) -> "bg-gray-400 hover:bg-gray-300"
         true -> "bg-gray-300 hover:bg-gray-200"
+      end
+
+    body =
+      if key == "Backspace" do
+        ~H"""
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path>
+        </svg>
+        """
+      else
+        ~H"""
+        <%= @key %>
+        """
+      end
+
+    size_classes =
+      case key do
+        "Backspace" -> "h-10 w-16 md:w-18 md:h-12"
+        "Enter" -> "h-10 w-16 md:w-18 md:h-12"
+        _ -> "h-10 w-8 md:w-10 md:h-12"
       end
 
     ~H"""
@@ -113,9 +133,9 @@ defmodule WordlexWeb.Components.Game do
       phx-click={JS.dispatch("app:keyClicked", to: "#game", detail: %{ key: @key })}
       phx-click="key"
       phx-value-key={@key}
-      class={"p-2 rounded #{classes} text-gray-800 text-md flex justify-center items-center uppercase md:p-4"}
+      class={"#{size_classes} #{classes} p-2 rounded text-gray-700 text-sm flex font-bold justify-center items-center uppercase"}
     >
-      <%= @key %>
+      <%= body %>
     </button>
     """
   end
