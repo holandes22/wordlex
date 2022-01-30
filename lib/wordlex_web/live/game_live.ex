@@ -81,7 +81,7 @@ defmodule WordlexWeb.GameLive do
     {:noreply,
      assign_state(socket, game)
      |> assign(revealing?: true)
-     |> Phoenix.LiveView.push_event("app:resetGuess", %{})}
+     |> push_event("keyboard:reset", %{})}
   end
 
   def handle_info(:clear_message, socket),

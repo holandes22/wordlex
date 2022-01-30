@@ -47,11 +47,13 @@ defmodule WordlexWeb.Components.Game do
       <% end %>
 
       <%= if not @game_over? do %>
-        <.tile_row animate_class={if(@valid_guess?, do: "", else: "animate-shake")} >
-          <%= for index <- 0..4 do  %>
-            <.guess_tile index={index} />
-          <% end %>
-        </.tile_row>
+        <div id="keyboard-input" phx-hook="KeyboardInput">
+          <.tile_row animate_class={if(@valid_guess?, do: "", else: "animate-shake")} >
+            <%= for index <- 0..4 do  %>
+              <.guess_tile index={index} />
+            <% end %>
+          </.tile_row>
+        </div>
       <% end  %>
 
       <.tile_rows guesses={@grid.remaining_guesses} />
@@ -86,15 +88,12 @@ defmodule WordlexWeb.Components.Game do
       ~w(Enter Z X C V B N M Backspace)
     ]
 
-    id = "keyboard"
-    selector = "#" <> id
-
     ~H"""
-    <div id={id} phx-hook="KeyboardInput" class="flex flex-col items-center space-y-1 md:space-y-2">
+    <div class="flex flex-col items-center space-y-1 md:space-y-2">
       <%= for line <- lines do %>
         <div class="flex items-center space-x-1 md:space-x-2">
           <%= for key <- line do %>
-            <.key letter_map={@letter_map} key={key} dispatch_to={selector}}/>
+            <.key letter_map={@letter_map} key={key} />
           <% end %>
         </div>
       <% end %>
@@ -135,10 +134,8 @@ defmodule WordlexWeb.Components.Game do
 
     ~H"""
     <button
-      phx-click={JS.dispatch("app:keyClicked", to: @dispatch_to, detail: %{ key: @key })}
-      phx-click="key"
-      phx-value-key={@key}
-      class={"#{size_classes} #{classes} p-2 rounded text-gray-700 text-sm flex font-bold justify-center items-center uppercase"}
+      phx-click={JS.dispatch("keyboard:clicked", to: "#keyboard-input", detail: %{ key: @key })}
+      class={"#{size_classes} #{classes} p-2 rounded text-gray-700 text-sm flex font-bold justify-center items-center uppercase focus:ring-2"}
     >
       <%= body %>
     </button>

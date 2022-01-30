@@ -1,26 +1,32 @@
 export default {
   mounted() {
     this.guess = "";
-    this.el.addEventListener("app:keyClicked", (event) => {
-      this.onKeyClicked(event.detail.key);
+    this.el.addEventListener("keyboard:clicked", (event) => {
+      this.onKey(event.detail.key);
     });
-    this.handleEvent("app:resetGuess", () => {
+    this.handleEvent("keyboard:reset", () => {
       this.guess = "";
-      this.refreshInputElement();
+      this.updateInputElement();
+    });
+    window.addEventListener("keydown", ({ key }) => {
+      this.onKey(key);
     });
   },
 
   updated() {
-    this.refreshInputElement();
+    this.updateInputElement();
   },
 
-  onKeyClicked(key) {
+  onKey(key) {
     if (key === "Enter") {
       this.onEnter();
     } else if (key === "Backspace") {
       this.onBackspace();
     } else {
-      this.onChar(key);
+      key = key.toUpperCase();
+      if (key.length === 1 && key >= "A" && key <= "Z") {
+        this.onChar(key);
+      }
     }
   },
 
@@ -30,20 +36,21 @@ export default {
 
   onBackspace() {
     this.guess = this.guess.slice(0, -1);
-    this.refreshInputElement();
+    this.updateInputElement();
   },
 
   onChar(newChar) {
     if (this.guess.length < 5) {
       this.guess = this.guess + newChar;
-      this.refreshInputElement();
+      this.updateInputElement();
     }
   },
 
-  refreshInputElement() {
+  updateInputElement() {
     [...Array(5).keys()].map((index) => {
       let char = this.guess.charAt(index);
-      let el = document.getElementById(`input-tile-${index}`);
+      let id = `input-tile-${index}`;
+      let el = document.getElementById(id);
 
       if (el) {
         el.children[0].innerText = char;
@@ -54,6 +61,8 @@ export default {
           el.classList.remove("border-gray-300");
           el.classList.add("border-gray-500");
         }
+      } else {
+        window.console.error(`Missing input element with id ${id}`);
       }
     });
   },
