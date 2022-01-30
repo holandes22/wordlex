@@ -86,12 +86,15 @@ defmodule WordlexWeb.Components.Game do
       ~w(Enter Z X C V B N M Backspace)
     ]
 
+    id = "keyboard"
+    selector = "#" <> id
+
     ~H"""
-    <div class="flex flex-col items-center space-y-1 md:space-y-2">
+    <div id={id} phx-hook="KeyboardInput" class="flex flex-col items-center space-y-1 md:space-y-2">
       <%= for line <- lines do %>
         <div class="flex items-center space-x-1 md:space-x-2">
           <%= for key <- line do %>
-            <.key letter_map={@letter_map} key={key} />
+            <.key letter_map={@letter_map} key={key} dispatch_to={selector}}/>
           <% end %>
         </div>
       <% end %>
@@ -109,16 +112,18 @@ defmodule WordlexWeb.Components.Game do
       end
 
     body =
-      if key == "Backspace" do
-        ~H"""
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path>
-        </svg>
-        """
-      else
-        ~H"""
-        <%= @key %>
-        """
+      case key do
+        "Backspace" ->
+          ~H"""
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path>
+          </svg>
+          """
+
+        _ ->
+          ~H"""
+          <%= @key %>
+          """
       end
 
     size_classes =
@@ -130,7 +135,7 @@ defmodule WordlexWeb.Components.Game do
 
     ~H"""
     <button
-      phx-click={JS.dispatch("app:keyClicked", to: "#game", detail: %{ key: @key })}
+      phx-click={JS.dispatch("app:keyClicked", to: @dispatch_to, detail: %{ key: @key })}
       phx-click="key"
       phx-value-key={@key}
       class={"#{size_classes} #{classes} p-2 rounded text-gray-700 text-sm flex font-bold justify-center items-center uppercase"}

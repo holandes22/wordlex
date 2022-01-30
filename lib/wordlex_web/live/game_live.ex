@@ -28,12 +28,7 @@ defmodule WordlexWeb.GameLive do
 
   def render(assigns) do
     ~H"""
-    <div
-        id="game"
-        phx-hook="KeyboardInput"
-        class="flex flex-col items-center justify-between h-screen"
-    >
-
+    <div class="flex flex-col items-center justify-between h-screen">
         <div class="flex flex-col items-center">
           <div class="w-screen border-b border-gray-300 md:w-96">
             <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
