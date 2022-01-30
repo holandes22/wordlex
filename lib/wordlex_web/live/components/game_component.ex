@@ -20,30 +20,18 @@ defmodule WordlexWeb.Components.Game do
   end
 
   def tile(assigns) do
-    border_classes =
+    classes =
       case assigns.state do
         :empty -> "border-2 border-gray-300"
-        :try -> "border-2 border-gray-500"
-        _ -> ""
-      end
-
-    bg_color =
-      case assigns.state do
         :correct -> "bg-green-500"
         :incorrect -> "bg-yellow-500"
         :invalid -> "bg-gray-500"
         _ -> "bg-white"
       end
 
-    text_color =
-      case assigns.state do
-        :try -> "text-gray-800"
-        _ -> "text-white"
-      end
-
     ~H"""
-    <div class={"w-10 h-10 #{bg_color} #{border_classes} flex justify-center items-center md:w-16 md:h-16"}>
-      <div class={"text-xl uppercase #{text_color} font-bold md:text-3xl"}><%= @char %></div>
+    <div class={"w-10 h-10 text-white #{classes} flex justify-center items-center md:w-16 md:h-16"}>
+      <div class="text-xl uppercase font-bold md:text-3xl"><%= @char %></div>
     </div>
     """
   end
@@ -58,7 +46,7 @@ defmodule WordlexWeb.Components.Game do
         <.tile_rows guesses={@grid.past_guesses} />
       <% end %>
 
-      <%= if not @locked? do %>
+      <%= if not @game_over? do %>
         <.tile_row animate_class={if(@valid_guess?, do: "", else: "animate-shake")} >
           <%= for index <- 0..4 do  %>
             <.guess_tile index={index} />
@@ -92,29 +80,18 @@ defmodule WordlexWeb.Components.Game do
   end
 
   def keyboard(assigns) do
-    lines =
-      [
-        "Q W E R T Y U I O P",
-        "A S D F G H J K L",
-        "Enter Z X C V B N M Backspace"
-      ]
-      |> Enum.map(&String.split/1)
+    lines = [
+      ~w(Q W E R T Y U I O P),
+      ~w(A S D F G H J K L),
+      ~w(Enter Z X C V B N M Backspace)
+    ]
 
     ~H"""
     <div class="flex flex-col items-center space-y-1">
       <%= for line <- lines do %>
         <div class="flex items-center space-x-1">
-          <%= for letter <- line do %>
-            <%= cond do  %>
-              <% Enum.member?(@letter_map.correct, letter) ->  %>
-                <.key bg_class={"bg-green-500 hover:bg-green-400"} letter={letter} />
-              <% Enum.member?(@letter_map.incorrect, letter) ->  %>
-                <.key bg_class={"bg-yellow-500 hover:bg-yellow-400"} letter={letter} />
-              <% Enum.member?(@letter_map.invalid, letter) ->  %>
-                <.key bg_class={"bg-gray-500 hover:bg-gray-400"} letter={letter} />
-              <% true ->  %>
-                <.key bg_class={"bg-gray-300 hover:bg-gray-200"} letter={letter} />
-            <% end %>
+          <%= for key <- line do %>
+            <.key letter_map={@letter_map} key={key} />
           <% end %>
         </div>
       <% end %>
@@ -122,12 +99,23 @@ defmodule WordlexWeb.Components.Game do
     """
   end
 
-  defp key(assigns) do
+  defp key(%{letter_map: letter_map, key: key} = assigns) do
+    classes =
+      cond do
+        Enum.member?(letter_map.correct, key) -> "bg-green-500 hover:bg-green-400"
+        Enum.member?(letter_map.incorrect, key) -> "bg-yellow-500 hover:bg-yellow-400"
+        Enum.member?(letter_map.invalid, key) -> "bg-gray-500 hover:bg-gray-400"
+        true -> "bg-gray-300 hover:bg-gray-200"
+      end
+
     ~H"""
     <button
-      phx-click={JS.dispatch("app:keyClicked", to: "#game", detail: %{ key: @letter })}
-      class={"p-2 rounded #{@bg_class} text-gray-800 text-md flex justify-center items-center uppercase md:p-4"} phx-click="key" phx-value-key={@letter}>
-      <%= @letter %>
+      phx-click={JS.dispatch("app:keyClicked", to: "#game", detail: %{ key: @key })}
+      phx-click="key"
+      phx-value-key={@key}
+      class={"p-2 rounded #{classes} text-gray-800 text-md flex justify-center items-center uppercase md:p-4"}
+    >
+      <%= @key %>
     </button>
     """
   end

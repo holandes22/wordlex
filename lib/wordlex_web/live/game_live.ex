@@ -58,7 +58,7 @@ defmodule WordlexWeb.GameLive do
             grid={@grid}
             valid_guess?={@error_message == nil}
             revealing?={length(@grid.past_guesses) > 0 && @revealing?}
-            locked?={@game.locked?}
+            game_over?={@game.over?}
           />
           <%# TODO: remove word to guess %>
           <div class="text-center"><%= @game.word %></div>
@@ -71,7 +71,7 @@ defmodule WordlexWeb.GameLive do
     """
   end
 
-  def handle_event("submit", _params, %{assigns: %{game: %{locked?: true}}} = socket) do
+  def handle_event("submit", _params, %{assigns: %{game: %{over?: true}}} = socket) do
     {:noreply, socket}
   end
 
