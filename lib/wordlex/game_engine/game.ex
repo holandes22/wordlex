@@ -3,7 +3,8 @@ defmodule Wordlex.Game do
   @derive Jason.Encoder
   defstruct guesses: [], result: :playing, allowed_guesses: 6, word: nil, over?: false
 
-  @type guess() :: {String.t(), :correct | :incorrect | :invalid | :empty}
+  @type char_info() :: %{char: String.t(), state: :correct | :incorrect | :invalid}
+  @type guess() :: list(char_info())
 
   @type t() :: %__MODULE__{
           guesses: list(guess),

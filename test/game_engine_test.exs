@@ -12,19 +12,4 @@ defmodule GameEngineTest do
 
     assert map == %{correct: ["R", "S", "U"], incorrect: ["A"], invalid: ["C", "E", "M", "P"]}
   end
-
-  describe "serialize/deserialize" do
-    test "deserialize returns the same game" do
-      game = GameEngine.new("sugar") |> GameEngine.resolve("sumar")
-      assert game == game |> GameEngine.serialize() |> GameEngine.deserialize()
-    end
-
-    test "serialize" do
-      serialized_game =
-        GameEngine.new("sugar") |> GameEngine.resolve("sumar") |> GameEngine.serialize()
-
-      assert %{"word" => "SUGAR", "guesses" => ["SUMAR"], "over?" => false, "result" => "playing"} =
-               serialized_game
-    end
-  end
 end

@@ -1,8 +1,7 @@
 defmodule WordlexWeb.GameLive do
   use WordlexWeb, :live_view
-
-  alias Wordlex.{GameEngine, WordServer}
-  alias WordlexWeb.Components.Game
+  import WordlexWeb.Components.Game
+  alias Wordlex.{GameEngine, WordServer, Game}
 
   @session_key "app:session"
 
@@ -25,7 +24,7 @@ defmodule WordlexWeb.GameLive do
           WordServer.word_to_guess() |> GameEngine.new()
 
         %{"restore" => data} ->
-          data |> Jason.decode!() |> GameEngine.deserialize()
+          game_from_json_string(data)
       end
 
     {:ok, assign_state(socket, game) |> assign(revealing?: true)}
@@ -42,7 +41,7 @@ defmodule WordlexWeb.GameLive do
         </div>
 
         <%= if @error_message do %>
-          <Game.alert message={@error_message} />
+          <.alert message={@error_message} />
         <% end %>
 
         <%= if GameEngine.won?(@game) do %>
@@ -54,7 +53,7 @@ defmodule WordlexWeb.GameLive do
         <% end %>
 
         <div>
-          <Game.tile_grid
+          <.tile_grid
             grid={@grid}
             valid_guess?={@error_message == nil}
             revealing?={length(@grid.past_guesses) > 0 && @revealing?}
@@ -65,7 +64,7 @@ defmodule WordlexWeb.GameLive do
         </div>
 
         <div class="mb-2">
-          <Game.keyboard letter_map={GameEngine.letter_map(@game)} />
+          <.keyboard letter_map={GameEngine.letter_map(@game)} />
         </div>
     </div>
     """
@@ -82,13 +81,12 @@ defmodule WordlexWeb.GameLive do
 
   def handle_event("submit", %{"guess" => guess_string}, socket) do
     game = GameEngine.resolve(socket.assigns.game, guess_string)
-    serialized_game = GameEngine.serialize(game) |> Jason.encode!()
 
     socket =
       if game.over? do
         push_event(socket, "session:clear", %{key: @session_key})
       else
-        push_event(socket, "session:store", %{key: @session_key, data: serialized_game})
+        push_event(socket, "session:store", %{key: @session_key, data: Jason.encode!(game)})
       end
 
     {:noreply,
@@ -115,17 +113,37 @@ defmodule WordlexWeb.GameLive do
     assign(socket, error_message: message)
   end
 
+  defp game_from_json_string(data) do
+    game = struct!(Wordlex.Game, Jason.decode!(data, keys: :atoms))
+    result = String.to_existing_atom(game.result)
+
+    guesses =
+      Enum.map(game.guesses, fn guess ->
+        Enum.map(guess, fn guess_info ->
+          %{guess_info | state: String.to_existing_atom(guess_info.state)}
+        end)
+      end)
+
+    %{game | result: result, guesses: guesses}
+  end
+
   @spec empty_guess(Integer.t()) :: guess()
   defp empty_guess(tile_count \\ 5), do: List.duplicate({"", :empty}, tile_count)
 
   @spec empty_guesses(Integer.t()) :: list(guess())
   defp empty_guesses(guess_count), do: List.duplicate(empty_guess(), guess_count)
 
-  @spec populate_grid(list(guess)) :: grid()
+  @spec populate_grid(list(Game.guess())) :: grid()
   defp populate_grid(past_guesses) do
     # need to account for the guess input line, so we remove an extra one
     guess_count = max(6 - length(past_guesses) - 1, 0)
     remaining_guesses = empty_guesses(guess_count)
+
+    past_guesses =
+      Enum.map(past_guesses, fn guess ->
+        Enum.map(guess, fn %{char: char, state: state} -> {char, state} end)
+      end)
+
     %{past_guesses: past_guesses, remaining_guesses: remaining_guesses}
   end
 end

@@ -5,35 +5,22 @@ defmodule Wordlex.GameEngine do
     word_to_guess |> normalize() |> Game.new()
   end
 
-  @spec serialize(Game.t()) :: %{}
-  def serialize(%Game{guesses: guesses} = game) do
-    guesses =
-      Enum.map(guesses, fn guess ->
-        Enum.reduce(guess, "", fn {char, _state}, acc -> acc <> char end)
-      end)
-
-    %{game | guesses: guesses}
-  end
-
-  @spec deserialize(%{}) :: Game.t()
-  def deserialize(%{"guesses" => guesses, "word" => word} = _params) do
-    guesses
-    |> Enum.reverse()
-    |> Enum.reduce(Game.new(word), fn guess, game -> resolve(game, guess) end)
-  end
-
   def guesses_left(%Game{} = game) do
     game.allowed_guesses - length(game.guesses)
   end
 
   def winner?(tiles) do
-    tiles |> Enum.map(fn {_char, state} -> state == :correct end) |> Enum.all?()
+    tiles |> Enum.map(fn %{state: state} -> state == :correct end) |> Enum.all?()
   end
 
   def won?(game), do: game.result == :won
 
+  @spec analyze(Game.t(), String.t()) :: Game.guess()
   def analyze(%Game{word: word}, guess) when guess == word do
-    guess |> normalize() |> String.graphemes() |> Enum.map(fn char -> {char, :correct} end)
+    guess
+    |> normalize()
+    |> String.graphemes()
+    |> Enum.map(fn char -> %{char: char, state: :correct} end)
   end
 
   def analyze(%Game{word: word}, guess) do
@@ -41,17 +28,18 @@ defmodule Wordlex.GameEngine do
 
     for {char, index} <- guess |> String.graphemes() |> Enum.with_index() do
       if char == String.at(word, index) do
-        {char, :correct}
+        %{char: char, state: :correct}
       else
         if String.contains?(word, char) do
-          {char, :incorrect}
+          %{char: char, state: :incorrect}
         else
-          {char, :invalid}
+          %{char: char, state: :invalid}
         end
       end
     end
   end
 
+  @spec resolve(Game.t(), String.t()) :: Game.t()
   def resolve(%Game{result: :playing} = game, guess) do
     guess = normalize(guess)
     tiles = analyze(game, guess)
@@ -79,13 +67,16 @@ defmodule Wordlex.GameEngine do
     map =
       guesses
       |> List.flatten()
-      |> Enum.reduce(%{correct: [], incorrect: [], invalid: []}, fn {char, state}, acc ->
-        case state do
-          :correct -> %{acc | correct: normalize.([char | acc.correct])}
-          :incorrect -> %{acc | incorrect: normalize.([char | acc.incorrect])}
-          :invalid -> %{acc | invalid: normalize.([char | acc.invalid])}
+      |> Enum.reduce(
+        %{correct: [], incorrect: [], invalid: []},
+        fn %{char: char, state: state}, acc ->
+          case state do
+            :correct -> %{acc | correct: normalize.([char | acc.correct])}
+            :incorrect -> %{acc | incorrect: normalize.([char | acc.incorrect])}
+            :invalid -> %{acc | invalid: normalize.([char | acc.invalid])}
+          end
         end
-      end)
+      )
 
     # correct wins over incorrect, so if a letter appears in both,
     # we need to remove it from that list
