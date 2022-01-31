@@ -53,7 +53,7 @@ export default {
       let el = document.getElementById(id);
 
       if (el) {
-        el.children[0].innerText = char;
+        el.firstElementChild.innerText = char;
         if (char === "") {
           el.classList.remove("border-gray-500");
           el.classList.add("border-gray-300");

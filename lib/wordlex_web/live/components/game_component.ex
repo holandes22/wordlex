@@ -65,7 +65,7 @@ defmodule WordlexWeb.Components.Game do
     ~H"""
     <%= for guess <- @guesses do  %>
       <.tile_row animate_class={"#{assigns[:animate_class] || ""}"}>
-        <%= for {char, state} <- guess do  %>
+        <%= for %{char: char, state: state} <- guess do  %>
           <.tile char={char} state={state} />
         <% end %>
       </.tile_row>

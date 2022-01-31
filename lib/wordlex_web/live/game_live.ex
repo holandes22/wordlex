@@ -1,18 +1,11 @@
 defmodule WordlexWeb.GameLive do
   use WordlexWeb, :live_view
   import WordlexWeb.Components.Game
-  alias Wordlex.{GameEngine, WordServer, Game}
+  alias Wordlex.{GameEngine, WordServer}
 
   @session_key "app:session"
 
-  @type tile_state() :: :empty | :correct | :incorrect | :invalid
-  @type tile() :: {String.t(), tile_state()}
-  @type guess() :: list(tile())
-  @type grid() :: %{
-          past_guesses: list(guess()),
-          remaining_guesses: list(guess())
-        }
-
+  @impl true
   def(mount(_params, _session, socket)) do
     game =
       case get_connect_params(socket) do
@@ -27,9 +20,10 @@ defmodule WordlexWeb.GameLive do
           game_from_json_string(data)
       end
 
-    {:ok, assign_state(socket, game) |> assign(revealing?: true)}
+    {:ok, socket |> assign_game_and_grid(game) |> assign(revealing?: true, error_message: nil)}
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div id="game" phx-hook="Session" class="flex flex-col items-center justify-between h-screen">
@@ -37,19 +31,13 @@ defmodule WordlexWeb.GameLive do
           <div class="w-screen border-b border-gray-300 md:w-96">
             <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
           </div>
-          <p class="p-1 text-md text-gray-400 font-medium">A <a href="https://powerlanguage.co.uk/wordle" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir</p>
+          <p class="p-1 text-md text-gray-400 font-medium">
+            A <a href="https://powerlanguage.co.uk/wordle" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir
+          </p>
         </div>
 
         <%= if @error_message do %>
           <.alert message={@error_message} />
-        <% end %>
-
-        <%= if GameEngine.won?(@game) do %>
-          <span>WINNER!</span>
-        <% end %>
-
-        <%= if GameEngine.guesses_left(@game) == 0 do %>
-          <span>No more guesses!</span>
         <% end %>
 
         <div>
@@ -70,15 +58,18 @@ defmodule WordlexWeb.GameLive do
     """
   end
 
+  @impl true
   def handle_event("submit", _params, %{assigns: %{game: %{over?: true}}} = socket) do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("submit", %{"guess" => guess_string}, socket)
       when byte_size(guess_string) < 5 do
     {:noreply, put_message(socket, "Not enough letters") |> assign(revealing?: false)}
   end
 
+  @impl true
   def handle_event("submit", %{"guess" => guess_string}, socket) do
     game = GameEngine.resolve(socket.assigns.game, guess_string)
 
@@ -90,22 +81,26 @@ defmodule WordlexWeb.GameLive do
       end
 
     {:noreply,
-     assign_state(socket, game)
+     socket
+     |> assign_game_and_grid(game)
      |> assign(revealing?: true)
      |> push_event("keyboard:reset", %{})}
   end
 
+  @impl true
   def handle_info(:clear_message, socket),
     do: {:noreply, assign(socket, error_message: nil)}
 
-  defp assign_state(socket, game, error_message \\ nil) do
-    grid = populate_grid(Enum.reverse(game.guesses))
+  defp assign_game_and_grid(socket, game) do
+    past_guesses = Enum.reverse(game.guesses)
+    guess_count = max(6 - length(past_guesses) - 1, 0)
 
-    assign(socket,
-      game: game,
-      grid: grid,
-      error_message: error_message
-    )
+    remaining_guesses =
+      List.duplicate(%{char: "", state: :empty}, 5) |> List.duplicate(guess_count)
+
+    grid = %{past_guesses: past_guesses, remaining_guesses: remaining_guesses}
+
+    assign(socket, game: game, grid: grid)
   end
 
   defp put_message(socket, message) do
@@ -125,25 +120,5 @@ defmodule WordlexWeb.GameLive do
       end)
 
     %{game | result: result, guesses: guesses}
-  end
-
-  @spec empty_guess(Integer.t()) :: guess()
-  defp empty_guess(tile_count \\ 5), do: List.duplicate({"", :empty}, tile_count)
-
-  @spec empty_guesses(Integer.t()) :: list(guess())
-  defp empty_guesses(guess_count), do: List.duplicate(empty_guess(), guess_count)
-
-  @spec populate_grid(list(Game.guess())) :: grid()
-  defp populate_grid(past_guesses) do
-    # need to account for the guess input line, so we remove an extra one
-    guess_count = max(6 - length(past_guesses) - 1, 0)
-    remaining_guesses = empty_guesses(guess_count)
-
-    past_guesses =
-      Enum.map(past_guesses, fn guess ->
-        Enum.map(guess, fn %{char: char, state: state} -> {char, state} end)
-      end)
-
-    %{past_guesses: past_guesses, remaining_guesses: remaining_guesses}
   end
 end
