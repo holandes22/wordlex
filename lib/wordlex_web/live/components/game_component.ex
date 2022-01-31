@@ -12,25 +12,28 @@ defmodule WordlexWeb.Components.Game do
   end
 
   def guess_tile(assigns) do
+    extra_classes =
+      case assigns.state do
+        :empty -> "bg-white text-gray-800 border-2 border-gray-300"
+        :correct -> "text-white bg-green-500"
+        :incorrect -> "text-white bg-yellow-500"
+        :invalid -> "text-white bg-gray-500"
+      end
+
     ~H"""
-    <div id={"input-tile-#{@index}"} class="w-10 h-10 border-2 border-gray-300 bg-white text-gray-800 flex justify-center items-center md:w-16 md:h-16">
-      <div class="text-xl uppercase text-gray-80 font-bold md:text-3xl"></div>
-    </div>
+    <.tile char={@char} id={nil} extra_classes={extra_classes} />
+    """
+  end
+
+  def input_guess_tile(assigns) do
+    ~H"""
+    <.tile char="" id={"input-tile-#{@index}"} extra_classes="bg-white text-gray-800 border-2 border-gray-300" />
     """
   end
 
   def tile(assigns) do
-    classes =
-      case assigns.state do
-        :empty -> "border-2 border-gray-300"
-        :correct -> "bg-green-500"
-        :incorrect -> "bg-yellow-500"
-        :invalid -> "bg-gray-500"
-        _ -> "bg-white"
-      end
-
     ~H"""
-    <div class={"w-10 h-10 text-white #{classes} flex justify-center items-center md:w-16 md:h-16"}>
+    <div id={@id} class={"w-10 h-10 flex justify-center items-center md:w-16 md:h-16 #{@extra_classes}"}>
       <div class="text-xl uppercase font-bold md:text-3xl"><%= @char %></div>
     </div>
     """
@@ -50,7 +53,7 @@ defmodule WordlexWeb.Components.Game do
         <div id="keyboard-input" phx-hook="KeyboardInput">
           <.tile_row animate_class={if(@valid_guess?, do: "", else: "animate-shake")} >
             <%= for index <- 0..4 do  %>
-              <.guess_tile index={index} />
+              <.input_guess_tile index={index} />
             <% end %>
           </.tile_row>
         </div>
@@ -66,7 +69,7 @@ defmodule WordlexWeb.Components.Game do
     <%= for guess <- @guesses do  %>
       <.tile_row animate_class={"#{assigns[:animate_class] || ""}"}>
         <%= for %{char: char, state: state} <- guess do  %>
-          <.tile char={char} state={state} />
+          <.guess_tile char={char} state={state} />
         <% end %>
       </.tile_row>
     <% end %>
