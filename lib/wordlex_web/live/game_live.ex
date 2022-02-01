@@ -41,8 +41,9 @@ defmodule WordlexWeb.GameLive do
         <% end %>
 
         <div>
-          <.tile_grid
-            grid={@grid}
+          <.grid
+            past_guesses={@grid.past_guesses}
+            remaining_guesses={@grid.remaining_guesses}
             valid_guess?={@error_message == nil}
             revealing?={length(@grid.past_guesses) > 0 && @revealing?}
             game_over?={@game.over?}

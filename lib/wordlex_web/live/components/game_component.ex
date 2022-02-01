@@ -11,42 +11,14 @@ defmodule WordlexWeb.Components.Game do
     """
   end
 
-  def guess_tile(assigns) do
-    extra_classes =
-      case assigns.state do
-        :empty -> "bg-white text-gray-800 border-2 border-gray-300"
-        :correct -> "text-white bg-green-500"
-        :incorrect -> "text-white bg-yellow-500"
-        :invalid -> "text-white bg-gray-500"
-      end
-
-    ~H"""
-    <.tile char={@char} id={nil} extra_classes={extra_classes} />
-    """
-  end
-
-  def input_guess_tile(assigns) do
-    ~H"""
-    <.tile char="" id={"input-tile-#{@index}"} extra_classes="bg-white text-gray-800 border-2 border-gray-300" />
-    """
-  end
-
-  def tile(assigns) do
-    ~H"""
-    <div id={@id} class={"w-10 h-10 flex justify-center items-center md:w-16 md:h-16 #{@extra_classes}"}>
-      <div class="text-xl uppercase font-bold md:text-3xl"><%= @char %></div>
-    </div>
-    """
-  end
-
-  def tile_grid(assigns) do
+  def grid(assigns) do
     ~H"""
     <div class="grid grid-rows-6 gap-1 place-content-evenly">
       <%= if @revealing? do %>
-        <.tile_rows guesses={Enum.slice(@grid.past_guesses, 0..-2)} />
-        <.tile_rows guesses={[List.last(@grid.past_guesses)]} animate_class="animate-flip" />
+        <.tile_rows guesses={Enum.slice(@past_guesses, 0..-2)} />
+        <.tile_rows guesses={[List.last(@past_guesses)]} animate_class="animate-flip" />
       <% else %>
-        <.tile_rows guesses={@grid.past_guesses} />
+        <.tile_rows guesses={@past_guesses} />
       <% end %>
 
       <%= if not @game_over? do %>
@@ -59,7 +31,7 @@ defmodule WordlexWeb.Components.Game do
         </div>
       <% end  %>
 
-      <.tile_rows guesses={@grid.remaining_guesses} />
+      <.tile_rows guesses={@remaining_guesses} />
     </div>
     """
   end
@@ -81,6 +53,34 @@ defmodule WordlexWeb.Components.Game do
     <div class={"grid grid-cols-5 gap-1 place-content-evenly #{@animate_class}"}>
       <%= render_slot(@inner_block) %>
     </div>
+    """
+  end
+
+  def tile(assigns) do
+    ~H"""
+    <div id={@id} class={"w-10 h-10 flex justify-center items-center md:w-16 md:h-16 #{@extra_classes}"}>
+      <div class="text-xl uppercase font-bold md:text-3xl"><%= @char %></div>
+    </div>
+    """
+  end
+
+  def guess_tile(assigns) do
+    extra_classes =
+      case assigns.state do
+        :empty -> "bg-white text-gray-800 border-2 border-gray-300"
+        :correct -> "text-white bg-green-500"
+        :incorrect -> "text-white bg-yellow-500"
+        :invalid -> "text-white bg-gray-500"
+      end
+
+    ~H"""
+    <.tile char={@char} id={nil} extra_classes={extra_classes} />
+    """
+  end
+
+  def input_guess_tile(assigns) do
+    ~H"""
+    <.tile char="" id={"input-tile-#{@index}"} extra_classes="bg-white text-gray-800 border-2 border-gray-300" />
     """
   end
 
