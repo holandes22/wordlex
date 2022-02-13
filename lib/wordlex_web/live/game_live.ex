@@ -20,7 +20,7 @@ defmodule WordlexWeb.GameLive do
           game_from_json_string(data)
       end
 
-    {:ok, socket |> assign_game_and_grid(game) |> assign(revealing?: true, error_message: nil)}
+    {:ok, assign(socket, game: game, revealing?: true, error_message: nil)}
   end
 
   @impl true
@@ -42,10 +42,9 @@ defmodule WordlexWeb.GameLive do
 
         <div>
           <.grid
-            past_guesses={@grid.past_guesses}
-            remaining_guesses={@grid.remaining_guesses}
+            past_guesses={Enum.reverse(@game.guesses)}
             valid_guess?={@error_message == nil}
-            revealing?={length(@grid.past_guesses) > 0 && @revealing?}
+            revealing?={length(@game.guesses) > 0 && @revealing?}
             game_over?={@game.over?}
           />
           <%# TODO: remove word to guess %>
@@ -83,26 +82,13 @@ defmodule WordlexWeb.GameLive do
 
     {:noreply,
      socket
-     |> assign_game_and_grid(game)
-     |> assign(revealing?: true)
+     |> assign(game: game, revealing?: true)
      |> push_event("keyboard:reset", %{})}
   end
 
   @impl true
   def handle_info(:clear_message, socket),
     do: {:noreply, assign(socket, error_message: nil)}
-
-  defp assign_game_and_grid(socket, game) do
-    past_guesses = Enum.reverse(game.guesses)
-    guess_count = max(6 - length(past_guesses) - 1, 0)
-
-    remaining_guesses =
-      List.duplicate(%{char: "", state: :empty}, 5) |> List.duplicate(guess_count)
-
-    grid = %{past_guesses: past_guesses, remaining_guesses: remaining_guesses}
-
-    assign(socket, game: game, grid: grid)
-  end
 
   defp put_message(socket, message) do
     Process.send_after(self(), :clear_message, 2000)

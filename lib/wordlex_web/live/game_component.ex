@@ -12,6 +12,16 @@ defmodule WordlexWeb.GameComponent do
   end
 
   def grid(assigns) do
+    offsset =
+      if assigns.game_over? do
+        0
+      else
+        1
+      end
+
+    count = max(6 - length(assigns.past_guesses) - offsset, 0)
+    empty_tiles = List.duplicate(%{char: "", state: :empty}, 5) |> List.duplicate(count)
+
     ~H"""
     <div class="grid grid-rows-6 gap-1 place-content-evenly">
       <%= if @revealing? do %>
@@ -31,7 +41,7 @@ defmodule WordlexWeb.GameComponent do
         </div>
       <% end  %>
 
-      <.tile_rows guesses={@remaining_guesses} />
+      <.tile_rows guesses={empty_tiles} />
     </div>
     """
   end
