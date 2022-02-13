@@ -1,6 +1,6 @@
 defmodule WordlexWeb.GameLive do
   use WordlexWeb, :live_view
-  import WordlexWeb.Components.Game
+  import WordlexWeb.GameComponent
   alias Wordlex.{GameEngine, WordServer}
 
   @session_key "app:session"
@@ -32,7 +32,7 @@ defmodule WordlexWeb.GameLive do
             <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
           </div>
           <p class="p-1 text-md text-gray-400 font-medium">
-            A <a href="https://powerlanguage.co.uk/wordle" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir
+            A <a href="https://www.nytimes.com/games/wordle/index.html" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir
           </p>
         </div>
 

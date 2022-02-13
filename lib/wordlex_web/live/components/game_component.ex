@@ -1,4 +1,4 @@
-defmodule WordlexWeb.Components.Game do
+defmodule WordlexWeb.GameComponent do
   use WordlexWeb, :component
 
   def alert(assigns) do
