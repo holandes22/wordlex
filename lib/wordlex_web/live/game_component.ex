@@ -154,4 +154,23 @@ defmodule WordlexWeb.GameComponent do
     </button>
     """
   end
+
+  def stats(assigns) do
+    won_count =
+      Enum.reduce(assigns.stats.guess_distribution, 0, fn {_, value}, acc -> acc + value end)
+
+    played = won_count + assigns.stats.lost
+    win_percent = floor(won_count / max(played, 1) * 100)
+
+    ~H"""
+    Stats
+    <div>Played <%= played %></div>
+    <div>Win percent <%= win_percent %></div>
+    <%= if played == 0 do %>
+     <div>No data</div>
+    <% else %>
+      <div>Show guess dist</div>
+    <% end %>
+    """
+  end
 end

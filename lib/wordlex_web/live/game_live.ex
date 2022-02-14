@@ -1,26 +1,32 @@
 defmodule WordlexWeb.GameLive do
   use WordlexWeb, :live_view
   import WordlexWeb.GameComponent
-  alias Wordlex.{GameEngine, WordServer}
+  alias Wordlex.{GameEngine, WordServer, Stats}
 
   @session_key "app:session"
 
   @impl true
   def(mount(_params, _session, socket)) do
-    game =
+    {game, stats} =
       case get_connect_params(socket) do
         # Socket not connected yet
         nil ->
-          WordServer.word_to_guess() |> GameEngine.new()
+          game = new_game()
+          stats = Stats.new()
+          {game, stats}
 
         %{"restore" => nil} ->
-          WordServer.word_to_guess() |> GameEngine.new()
+          game = new_game()
+          stats = Stats.new()
+          {game, stats}
 
         %{"restore" => data} ->
-          game_from_json_string(data)
+          game = game_from_json_string(data)
+          stats = stats_from_json_string(data)
+          {game, stats}
       end
 
-    {:ok, assign(socket, game: game, revealing?: true, error_message: nil)}
+    {:ok, assign(socket, game: game, stats: stats, revealing?: true, error_message: nil)}
   end
 
   @impl true
@@ -51,6 +57,8 @@ defmodule WordlexWeb.GameLive do
           <div class="text-center"><%= @game.word %></div>
         </div>
 
+        <.stats stats={@stats} />
+
         <div class="mb-2">
           <.keyboard letter_map={GameEngine.letter_map(@game)} />
         </div>
@@ -72,17 +80,22 @@ defmodule WordlexWeb.GameLive do
   @impl true
   def handle_event("submit", %{"guess" => guess_string}, socket) do
     game = GameEngine.resolve(socket.assigns.game, guess_string)
+    stats = update_stats(game, socket.assigns.stats)
 
-    socket =
+    game =
       if game.over? do
-        push_event(socket, "session:clear", %{key: @session_key})
+        # TODO: reset game if game over and over midnight
+        game
       else
-        push_event(socket, "session:store", %{key: @session_key, data: Jason.encode!(game)})
+        game
       end
+
+    data = Jason.encode!(%{game: game, stats: stats})
 
     {:noreply,
      socket
-     |> assign(game: game, revealing?: true)
+     |> assign(game: game, stats: stats, revealing?: true)
+     |> push_event("session:store", %{key: @session_key, data: data})
      |> push_event("keyboard:reset", %{})}
   end
 
@@ -95,8 +108,24 @@ defmodule WordlexWeb.GameLive do
     assign(socket, error_message: message)
   end
 
+  defp new_game(), do: WordServer.word_to_guess() |> GameEngine.new()
+
+  defp update_stats(%{result: :playing}, stats), do: stats
+
+  defp update_stats(%{result: :lost}, stats) do
+    %{stats | lost: stats.lost + 1}
+  end
+
+  defp update_stats(game, stats) do
+    key = abs(GameEngine.guesses_left(game) - 6)
+    value = stats.guess_distribution[key] + 1
+    %{stats | guess_distribution: Map.put(stats.guess_distribution, key, value)}
+  end
+
   defp game_from_json_string(data) do
-    game = struct!(Wordlex.Game, Jason.decode!(data, keys: :atoms))
+    %{game: game_data} = Jason.decode!(data, keys: :atoms)
+    game = struct!(Wordlex.Game, game_data)
+
     result = String.to_existing_atom(game.result)
 
     guesses =
@@ -107,5 +136,10 @@ defmodule WordlexWeb.GameLive do
       end)
 
     %{game | result: result, guesses: guesses}
+  end
+
+  defp stats_from_json_string(data) do
+    %{stats: stats_data} = Jason.decode!(data, keys: :atoms)
+    struct!(Stats, stats_data)
   end
 end
