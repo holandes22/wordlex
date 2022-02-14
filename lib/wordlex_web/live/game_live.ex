@@ -23,6 +23,17 @@ defmodule WordlexWeb.GameLive do
         %{"restore" => data} ->
           game = game_from_json_string(data)
           stats = stats_from_json_string(data)
+
+          word_changed? =
+            String.upcase(game.word) != WordServer.word_to_guess() |> String.upcase()
+
+          game =
+            if game.over? and word_changed? do
+              new_game()
+            else
+              game
+            end
+
           {game, stats}
       end
 
@@ -117,7 +128,9 @@ defmodule WordlexWeb.GameLive do
   end
 
   defp update_stats(game, stats) do
-    key = abs(GameEngine.guesses_left(game) - 6)
+    key =
+      abs(GameEngine.guesses_left(game) - 6) |> Integer.to_string() |> String.to_existing_atom()
+
     value = stats.guess_distribution[key] + 1
     %{stats | guess_distribution: Map.put(stats.guess_distribution, key, value)}
   end
