@@ -68,7 +68,9 @@ defmodule WordlexWeb.GameLive do
           <div class="text-center"><%= @game.word %></div>
         </div>
 
-        <.stats stats={@stats} />
+        <button type="button" phx-click={show_stats_modal()}>Show stats</button>
+
+        <.stats_modal stats={@stats} />
 
         <div class="mb-2">
           <.keyboard letter_map={GameEngine.letter_map(@game)} />

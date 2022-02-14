@@ -155,7 +155,21 @@ defmodule WordlexWeb.GameComponent do
     """
   end
 
-  def stats(assigns) do
+  def show_stats_modal(js \\ %JS{}) do
+    JS.show(js,
+      transition: {"ease-out duration-300", "opacity-0", "opacity-100"},
+      to: "#stats-modal"
+    )
+  end
+
+  def hide_stats_modal(js \\ %JS{}) do
+    JS.hide(js,
+      transition: {"ease-in duration-200", "opacity-100", "opacity-0"},
+      to: "#stats-modal"
+    )
+  end
+
+  def stats_modal(assigns) do
     won_count =
       Enum.reduce(assigns.stats.guess_distribution, 0, fn {_, value}, acc -> acc + value end)
 
@@ -163,14 +177,34 @@ defmodule WordlexWeb.GameComponent do
     win_percent = floor(won_count / max(played, 1) * 100)
 
     ~H"""
-    Stats
-    <div>Played <%= played %></div>
-    <div>Win percent <%= win_percent %></div>
-    <%= if played == 0 do %>
-     <div>No data</div>
-    <% else %>
-      <div>Show guess dist</div>
-    <% end %>
+    <div id="stats-modal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <!-- This element is to trick the browser into centering the modal contents. -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+          <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
+            <button type="button" phx-click={hide_stats_modal()} class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <span class="sr-only">Close</span>
+              <!-- Heroicon name: outline/x -->
+              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div>
+            Stats
+            <div>Played <%= played %></div>
+            <div>Win percent <%= win_percent %></div>
+            <%= if played == 0 do %>
+            <div>No data</div>
+            <% else %>
+              <div>Show guess dist</div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
     """
   end
 end
