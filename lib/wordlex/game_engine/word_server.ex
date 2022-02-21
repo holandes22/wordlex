@@ -40,7 +40,7 @@ defmodule Wordlex.WordServer do
   defp get_word_of_the_day(words) do
     # Taken from https://github.com/cwackerfuss/react-wordle/blob/main/src/lib/words.ts#L42
     epoch_in_seconds = ~U[2022-01-01 00:00:00.00Z] |> DateTime.to_unix()
-    now_in_seconds = DateTime.now!("Etc/UTC") |> DateTime.to_unix()
+    now_in_seconds = "Etc/UTC" |> DateTime.now!() |> DateTime.to_unix()
     len = length(words)
     index = ((now_in_seconds - epoch_in_seconds) / @day_in_seconds) |> floor() |> rem(len)
     Enum.at(words, index)

@@ -184,7 +184,7 @@ defmodule WordlexWeb.GameComponent do
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
-            <button type="button" phx-click={hide_stats_modal()} class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="button" phx-click={hide_stats_modal()} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->
               <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -192,19 +192,70 @@ defmodule WordlexWeb.GameComponent do
               </svg>
             </button>
           </div>
-          <div>
-            Stats
-            <div>Played <%= played %></div>
-            <div>Win percent <%= win_percent %></div>
+          <div class="flex flex-col items-center space-y-4">
+            <h2 class="text-gray-800 text-lg font-semibold uppercase">Statistics</h2>
+            <div class="flex items-center space-x-4">
+              <.stat value={played} label="Played" />
+              <.stat value={win_percent} label="Win %" />
+              <.stat value="N/A" label="Current Streak" />
+              <.stat value="N/A" label="Max Streak" />
+            </div>
+            <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Guess distribution</h2>
             <%= if played == 0 do %>
-            <div>No data</div>
+              <pre class="text-gray-700 text-sm">No Data</pre>
             <% else %>
-              <div>Show guess dist</div>
+              <.guess_distribution dist_map={@stats.guess_distribution}/>
             <% end %>
           </div>
         </div>
       </div>
     </div>
     """
+  end
+
+  def stat(assigns) do
+    ~H"""
+    <div class="flex flex-col items-center space-y-2">
+      <div class="text-gray-800 text-3xl font-semibold"><%= @value %></div>
+      <pre class="text-gray-700 text-xs break-words"><%= @label %></pre>
+    </div>
+    """
+  end
+
+  def guess_distribution(assigns) do
+    max = assigns.dist_map |> Map.values() |> Enum.max()
+
+    ~H"""
+    <div class="space-y-1">
+      <%= for {key, value} <- @dist_map do %>
+        <div class="flex flex-row items-center justify-start space-x-2">
+          <div class="text-sm text-gray-700"><%= key %></div>
+          <div class={"bg-gray-500 font-semibold text-white text-medium text-right #{dist_bar_width(value)}"}><div class="ml-1 mr-1"><%= value %></div></div>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp dist_bar_width(0), do: "w-[1rem]"
+  defp dist_bar_width(1), do: "w-[1rem]"
+  defp dist_bar_width(2), do: "w-[2rem]"
+  defp dist_bar_width(3), do: "w-[3rem]"
+  defp dist_bar_width(4), do: "w-[4rem]"
+  defp dist_bar_width(5), do: "w-[5rem]"
+  defp dist_bar_width(6), do: "w-[6rem]"
+  defp dist_bar_width(7), do: "w-[7rem]"
+  defp dist_bar_width(8), do: "w-[8rem]"
+  defp dist_bar_width(9), do: "w-[9rem]"
+  defp dist_bar_width(10), do: "w-[10rem]"
+  defp dist_bar_width(11), do: "w-[11rem]"
+  defp dist_bar_width(12), do: "w-[12rem]"
+  defp dist_bar_width(13), do: "w-[13rem]"
+  defp dist_bar_width(14), do: "w-[14rem]"
+  defp dist_bar_width(15), do: "w-[15rem]"
+
+  defp dist_bar_width(_key) do
+    IO.inspect(_key)
+    "w-full"
   end
 end
