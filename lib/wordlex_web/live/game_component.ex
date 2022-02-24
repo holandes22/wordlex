@@ -155,21 +155,21 @@ defmodule WordlexWeb.GameComponent do
     """
   end
 
-  def show_stats_modal(js \\ %JS{}) do
+  def show_info_modal(js \\ %JS{}) do
     JS.show(js,
       transition: {"ease-out duration-300", "opacity-0", "opacity-100"},
-      to: "#stats-modal"
+      to: "#info-modal"
     )
   end
 
-  def hide_stats_modal(js \\ %JS{}) do
+  def hide_info_modal(js \\ %JS{}) do
     JS.hide(js,
       transition: {"ease-in duration-200", "opacity-100", "opacity-0"},
-      to: "#stats-modal"
+      to: "#info-modal"
     )
   end
 
-  def stats_modal(assigns) do
+  def info_modal(assigns) do
     won_count =
       Enum.reduce(assigns.stats.guess_distribution, 0, fn {_, value}, acc -> acc + value end)
 
@@ -177,14 +177,14 @@ defmodule WordlexWeb.GameComponent do
     win_percent = floor(won_count / max(played, 1) * 100)
 
     ~H"""
-    <div id="stats-modal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="info-modal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <!-- This element is to trick the browser into centering the modal contents. -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
-            <button type="button" phx-click={hide_stats_modal()} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="button" phx-click={hide_info_modal()} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->
               <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -204,8 +204,9 @@ defmodule WordlexWeb.GameComponent do
             <%= if played == 0 do %>
               <pre class="text-gray-700 text-sm">No Data</pre>
             <% else %>
-              <.guess_distribution dist_map={@stats.guess_distribution}/>
+              <.guess_distribution dist_map={@stats.guess_distribution} />
             <% end %>
+            <.countdown countdown={@countdown} />
           </div>
         </div>
       </div>
@@ -232,6 +233,12 @@ defmodule WordlexWeb.GameComponent do
         </div>
       <% end %>
     </div>
+    """
+  end
+
+  def countdown(assigns) do
+    ~H"""
+    <div><%= @countdown %></div>
     """
   end
 
