@@ -223,8 +223,6 @@ defmodule WordlexWeb.GameComponent do
   end
 
   def guess_distribution(assigns) do
-    max = assigns.dist_map |> Map.values() |> Enum.max()
-
     ~H"""
     <div class="space-y-1">
       <%= for {key, value} <- @dist_map do %>
@@ -253,9 +251,5 @@ defmodule WordlexWeb.GameComponent do
   defp dist_bar_width(13), do: "w-[13rem]"
   defp dist_bar_width(14), do: "w-[14rem]"
   defp dist_bar_width(15), do: "w-[15rem]"
-
-  defp dist_bar_width(_key) do
-    IO.inspect(_key)
-    "w-full"
-  end
+  defp dist_bar_width(_key), do: "w-full"
 end

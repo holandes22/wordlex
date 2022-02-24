@@ -6,7 +6,7 @@ defmodule WordlexWeb.GameLive do
   @session_key "app:session"
 
   @impl true
-  def(mount(_params, _session, socket)) do
+  def mount(_params, _session, socket) do
     {game, stats} =
       case get_connect_params(socket) do
         # Socket not connected yet
@@ -37,7 +37,8 @@ defmodule WordlexWeb.GameLive do
           {game, stats}
       end
 
-    {:ok, assign(socket, game: game, stats: stats, revealing?: true, error_message: nil)}
+    {:ok,
+     assign(socket, game: game, stats: stats, revealing?: true, message: nil, valid_guess?: nil)}
   end
 
   @impl true
@@ -53,14 +54,14 @@ defmodule WordlexWeb.GameLive do
           </p>
         </div>
 
-        <%= if @error_message do %>
-          <.alert message={@error_message} />
+        <%= if @message do %>
+          <.alert message={@message} />
         <% end %>
 
         <div>
           <.grid
             past_guesses={Enum.reverse(@game.guesses)}
-            valid_guess?={@error_message == nil}
+            valid_guess?={@valid_guess?}
             revealing?={length(@game.guesses) > 0 && @revealing?}
             game_over?={@game.over?}
           />
@@ -87,7 +88,7 @@ defmodule WordlexWeb.GameLive do
   @impl true
   def handle_event("submit", %{"guess" => guess_string}, socket)
       when byte_size(guess_string) < 5 do
-    {:noreply, put_message(socket, "Not enough letters") |> assign(revealing?: false)}
+    {:noreply, put_message(socket, "Not enough letters") |> assign(valid_guess?: false)}
   end
 
   @impl true
@@ -107,18 +108,37 @@ defmodule WordlexWeb.GameLive do
 
     {:noreply,
      socket
-     |> assign(game: game, stats: stats, revealing?: true)
+     |> assign(game: game, stats: stats, revealing?: true, valid_guess?: true)
+     |> put_game_over_message(game)
      |> push_event("session:store", %{key: @session_key, data: data})
      |> push_event("keyboard:reset", %{})}
   end
 
   @impl true
   def handle_info(:clear_message, socket),
-    do: {:noreply, assign(socket, error_message: nil)}
+    do: {:noreply, assign(socket, message: nil, revealing?: false)}
 
   defp put_message(socket, message) do
     Process.send_after(self(), :clear_message, 2000)
-    assign(socket, error_message: message)
+    assign(socket, message: message)
+  end
+
+  defp put_game_over_message(socket, %{over?: false}), do: socket
+
+  defp put_game_over_message(socket, %{result: :lost, word: word}),
+    do: put_message(socket, "The solution was #{word}")
+
+  defp put_game_over_message(socket, %{} = game) do
+    message =
+      case GameEngine.guesses_left(game) do
+        0 -> "Phew!"
+        1 -> "Nice!"
+        2 -> "Superb!"
+        3 -> "Impressive!"
+        _ -> "Outstanding!"
+      end
+
+    put_message(socket, message)
   end
 
   defp new_game(), do: WordServer.word_to_guess() |> GameEngine.new()
