@@ -155,18 +155,50 @@ defmodule WordlexWeb.GameComponent do
     """
   end
 
-  def show_info_modal(js \\ %JS{}) do
-    JS.show(js,
+  def show_info_modal() do
+    show_modal("info-modal")
+  end
+
+  def hide_info_modal() do
+    hide_modal("info-modal")
+  end
+
+  def show_modal(id) do
+    JS.show(%JS{},
       transition: {"ease-out duration-300", "opacity-0", "opacity-100"},
-      to: "#info-modal"
+      to: "##{id}"
     )
   end
 
-  def hide_info_modal(js \\ %JS{}) do
-    JS.hide(js,
+  def hide_modal(id) do
+    JS.hide(%JS{},
       transition: {"ease-in duration-200", "opacity-100", "opacity-0"},
-      to: "#info-modal"
+      to: "##{id}"
     )
+  end
+
+  def modal(assigns) do
+    ~H"""
+    <div id={@modal_id} class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <!-- This element is to trick the browser into centering the modal contents. -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+          <div class="absolute top-0 right-0 pt-4 pr-4">
+            <button type="button" phx-click={hide_modal(@modal_id)} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <span class="sr-only">Close</span>
+              <!-- Heroicon name: outline/x -->
+              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <%= render_slot(@inner_block) %>
+        </div>
+      </div>
+    </div>
+    """
   end
 
   def info_modal(assigns) do
@@ -178,43 +210,27 @@ defmodule WordlexWeb.GameComponent do
     win_percent = floor(won_count / max(played, 1) * 100)
 
     ~H"""
-    <div id="info-modal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-        <!-- This element is to trick the browser into centering the modal contents. -->
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div class="absolute top-0 right-0 pt-4 pr-4">
-            <button type="button" phx-click={hide_info_modal()} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-              <span class="sr-only">Close</span>
-              <!-- Heroicon name: outline/x -->
-              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div class="flex flex-col items-center space-y-4">
-            <h2 class="text-gray-800 text-lg font-semibold uppercase">Statistics</h2>
-            <div class="flex items-center space-x-4">
-              <.stat value={played} label="Played" />
-              <.stat value={win_percent} label="Win %" />
-              <.stat value="N/A" label="Current Streak" />
-              <.stat value="N/A" label="Max Streak" />
-            </div>
-            <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Guess distribution</h2>
-            <%= if show_guess_dist? do %>
-              <.guess_distribution dist_map={@stats.guess_distribution} />
-            <% else %>
-              <pre class="text-gray-700 text-sm">No Data</pre>
-            <% end %>
-            <%= if @show_countdown? do %>
-            <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Next word in</h2>
-              <.countdown />
-            <% end %>
-          </div>
+    <.modal modal_id="info-modal">
+      <div class="flex flex-col items-center space-y-4">
+        <h2 class="text-gray-800 text-lg font-semibold uppercase">Statistics</h2>
+        <div class="flex items-center space-x-4">
+          <.stat value={played} label="Played" />
+          <.stat value={win_percent} label="Win %" />
+          <.stat value="N/A" label="Current Streak" />
+          <.stat value="N/A" label="Max Streak" />
         </div>
+        <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Guess distribution</h2>
+        <%= if show_guess_dist? do %>
+          <.guess_distribution dist_map={@stats.guess_distribution} />
+        <% else %>
+          <pre class="text-gray-700 text-sm">No Data</pre>
+        <% end %>
+        <%= if @show_countdown? do %>
+        <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Next word in</h2>
+          <.countdown />
+        <% end %>
       </div>
-    </div>
+    </.modal>
     """
   end
 
