@@ -174,6 +174,7 @@ defmodule WordlexWeb.GameComponent do
       Enum.reduce(assigns.stats.guess_distribution, 0, fn {_, value}, acc -> acc + value end)
 
     played = won_count + assigns.stats.lost
+    show_guess_dist? = played > 0
     win_percent = floor(won_count / max(played, 1) * 100)
 
     ~H"""
@@ -201,12 +202,13 @@ defmodule WordlexWeb.GameComponent do
               <.stat value="N/A" label="Max Streak" />
             </div>
             <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Guess distribution</h2>
-            <%= if played == 0 do %>
-              <pre class="text-gray-700 text-sm">No Data</pre>
-            <% else %>
+            <%= if show_guess_dist? do %>
               <.guess_distribution dist_map={@stats.guess_distribution} />
+            <% else %>
+              <pre class="text-gray-700 text-sm">No Data</pre>
             <% end %>
             <%= if @show_countdown? do %>
+            <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Next word in</h2>
               <.countdown />
             <% end %>
           </div>
