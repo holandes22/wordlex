@@ -163,6 +163,14 @@ defmodule WordlexWeb.GameComponent do
     hide_modal("info-modal")
   end
 
+  def show_settings_modal() do
+    show_modal("settings-modal")
+  end
+
+  def hide_settings_modal() do
+    hide_modal("settings-modal")
+  end
+
   def show_modal(id) do
     JS.show(%JS{},
       transition: {"ease-out duration-300", "opacity-0", "opacity-100"},
@@ -184,7 +192,7 @@ defmodule WordlexWeb.GameComponent do
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <!-- This element is to trick the browser into centering the modal contents. -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 dark:bg-gray-800">
           <div class="absolute top-0 right-0 pt-4 pr-4">
             <button type="button" phx-click={hide_modal(@modal_id)} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               <span class="sr-only">Close</span>
@@ -229,6 +237,23 @@ defmodule WordlexWeb.GameComponent do
         <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Next word in</h2>
           <.countdown />
         <% end %>
+      </div>
+    </.modal>
+    """
+  end
+
+  def settings_modal(assigns) do
+    ~H"""
+    <.modal modal_id="settings-modal">
+      <div class="flex flex-col items-center space-y-4">
+
+      <!-- Enabled: "bg-indigo-600", Not Enabled: "bg-gray-200" -->
+      <button phx-click="toggle_theme" type="button" class={"#{if(@checked?, do: "bg-green-600", else: "bg-gray-200")} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"} role="switch" aria-checked="false">
+        <span class="sr-only">Toggle theme</span>
+        <!-- Enabled: "translate-x-5", Not Enabled: "translate-x-0" -->
+        <span aria-hidden="true" class={"#{if(@checked?, do: "translate-x-5", else: "translate-x-0")} pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"}></span>
+      </button>
+
       </div>
     </.modal>
     """
