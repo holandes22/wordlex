@@ -132,6 +132,7 @@ defmodule WordlexWeb.GameLive do
         1 -> "Nice!"
         2 -> "Superb!"
         3 -> "Impressive!"
+        4 -> "Great!"
         _ -> "Outstanding!"
       end
 

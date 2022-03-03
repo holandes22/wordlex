@@ -32,14 +32,12 @@ let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
-let Hooks = { KeyboardInput, Session, Countdown };
-
 let liveSocket = new LiveSocket("/live", Socket, {
   params: {
     _csrf_token: csrfToken,
     restore: localStorage.getItem("app:session"),
   },
-  hooks: Hooks,
+  hooks: { KeyboardInput, Session, Countdown },
 });
 
 // Show progress bar on live navigation and form submits

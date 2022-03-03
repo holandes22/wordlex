@@ -140,9 +140,9 @@ defmodule WordlexWeb.GameComponent do
 
     size_classes =
       case key do
-        "Backspace" -> "h-10 w-16 md:w-18 md:h-12"
-        "Enter" -> "h-10 w-16 md:w-18 md:h-12"
-        _ -> "h-10 w-8 md:w-10 md:h-12"
+        "Backspace" -> "h-10 w-10 sm:w-18 sm:h-12"
+        "Enter" -> "h-10 w-14 sm:w-18 sm:h-12"
+        _ -> "h-10 w-8 sm:w-10 sm:h-12"
       end
 
     ~H"""
@@ -184,7 +184,7 @@ defmodule WordlexWeb.GameComponent do
         <!-- This element is to trick the browser into centering the modal contents. -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
+          <div class="absolute top-0 right-0 pt-4 pr-4">
             <button type="button" phx-click={hide_info_modal()} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->
