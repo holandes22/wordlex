@@ -7,8 +7,6 @@ defmodule WordlexWeb.GameLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket), do: :timer.send_interval(500, self(), :tick)
-
     {game, stats} =
       case get_connect_params(socket) do
         # Socket not connected yet
@@ -45,8 +43,7 @@ defmodule WordlexWeb.GameLive do
        stats: stats,
        revealing?: true,
        message: nil,
-       valid_guess?: nil,
-       countdown: "N/A"
+       valid_guess?: nil
      )}
   end
 
@@ -80,7 +77,7 @@ defmodule WordlexWeb.GameLive do
 
         <button type="button" phx-click={show_info_modal()}>Show stats</button>
 
-        <.info_modal stats={@stats} countdown={@countdown} />
+        <.info_modal stats={@stats} show_countdown?={@game.over?}/>
 
         <div class="mb-2">
           <.keyboard letter_map={GameEngine.letter_map(@game)} />
@@ -112,13 +109,6 @@ defmodule WordlexWeb.GameLive do
      |> put_game_over_message(game)
      |> push_event("session:store", %{key: @session_key, data: data})
      |> push_event("keyboard:reset", %{})}
-  end
-
-  @impl true
-  def handle_info(:tick, socket) do
-    now = DateTime.utc_now()
-    countdown = "#{23 - now.hour}:#{59 - now.minute}:#{59 - now.second}"
-    {:noreply, assign(socket, countdown: countdown)}
   end
 
   @impl true

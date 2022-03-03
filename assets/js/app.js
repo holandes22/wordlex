@@ -26,12 +26,13 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import KeyboardInput from "./hooks/keyboard_input";
 import Session from "./hooks/session";
+import Countdown from "./hooks/countdown";
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
-let Hooks = { KeyboardInput, Session };
+let Hooks = { KeyboardInput, Session, Countdown };
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: {

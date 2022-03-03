@@ -206,7 +206,9 @@ defmodule WordlexWeb.GameComponent do
             <% else %>
               <.guess_distribution dist_map={@stats.guess_distribution} />
             <% end %>
-            <.countdown countdown={@countdown} />
+            <%= if @show_countdown? do %>
+              <.countdown />
+            <% end %>
           </div>
         </div>
       </div>
@@ -227,7 +229,7 @@ defmodule WordlexWeb.GameComponent do
     ~H"""
     <div class="space-y-1">
       <%= for {key, value} <- @dist_map do %>
-        <div class="flex flex-row items-center justify-start space-x-2">
+        <div class="flex flex-row items-center justify-start space-x-2 font-mono">
           <div class="text-sm text-gray-700"><%= key %></div>
           <div class={"bg-gray-500 font-semibold text-white text-medium text-right #{dist_bar_width(value)}"}><div class="ml-1 mr-1"><%= value %></div></div>
         </div>
@@ -238,7 +240,7 @@ defmodule WordlexWeb.GameComponent do
 
   def countdown(assigns) do
     ~H"""
-    <div><%= @countdown %></div>
+    <div id="countdown" phx-hook="Countdown" class="h-8 font-mono"></div>
     """
   end
 

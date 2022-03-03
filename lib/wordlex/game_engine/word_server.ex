@@ -33,8 +33,14 @@ defmodule Wordlex.WordServer do
   end
 
   @impl true
-  def handle_call({:valid_guess?, guess}, _from, %{valid_guesses: valid_guesses} = state) do
-    {:reply, Enum.member?(valid_guesses, guess), state}
+  def handle_call(
+        {:valid_guess?, guess},
+        _from,
+        %{words: words, valid_guesses: valid_guesses} = state
+      ) do
+    # TODO: normalize all to upper
+    valid? = Enum.member?(words, guess) || Enum.member?(valid_guesses, guess)
+    {:reply, valid?, state}
   end
 
   def get_word_of_the_day(words, opts \\ []) do
