@@ -1,28 +1,31 @@
 defmodule WordlexWeb.GameLive do
   use WordlexWeb, :live_view
   import WordlexWeb.GameComponent
-  alias Wordlex.{GameEngine, WordServer, Stats}
+  alias Wordlex.{GameEngine, WordServer, Stats, Settings}
 
   @session_key "app:session"
 
   @impl true
   def mount(_params, _session, socket) do
-    {game, stats} =
+    {game, stats, settings} =
       case get_connect_params(socket) do
         # Socket not connected yet
         nil ->
           game = new_game()
           stats = Stats.new()
-          {game, stats}
+          settings = Settings.new()
+          {game, stats, settings}
 
         %{"restore" => nil} ->
           game = new_game()
           stats = Stats.new()
-          {game, stats}
+          settings = Settings.new()
+          {game, stats, settings}
 
         %{"restore" => data} ->
           game = game_from_json_string(data)
           stats = stats_from_json_string(data)
+          settings = settings_from_json_string(data)
 
           word_changed? =
             String.upcase(game.word) != WordServer.word_to_guess() |> String.upcase()
@@ -34,7 +37,7 @@ defmodule WordlexWeb.GameLive do
               game
             end
 
-          {game, stats}
+          {game, stats, settings}
       end
 
     {:ok,
@@ -44,14 +47,14 @@ defmodule WordlexWeb.GameLive do
        revealing?: true,
        message: nil,
        valid_guess?: nil,
-       theme: :light
+       settings: settings
      )}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={"#{if(@theme == :dark, do: "dark", else: "")}"}>
+    <div class={"#{if(@settings.theme == :dark, do: "dark", else: "")}"}>
       <div id="game" phx-hook="Session" class="flex flex-col items-center justify-between h-screen dark:bg-gray-800">
           <div class="flex flex-col items-center">
             <div class="w-screen border-b border-gray-300 md:w-96">
@@ -63,7 +66,7 @@ defmodule WordlexWeb.GameLive do
                   </svg>
                 </button>
 
-                <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest">Wordlex</h1>
+                <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest dark:text-white">Wordlex</h1>
 
                 <div>
                   <button type="button" phx-click={show_settings_modal()}>
@@ -104,7 +107,7 @@ defmodule WordlexWeb.GameLive do
 
 
           <.info_modal stats={@stats} show_countdown?={@game.over?}/>
-          <.settings_modal checked?={@theme == :dark}/>
+          <.settings_modal checked?={@settings.theme == :dark}/>
 
 
           <div class="mb-2">
@@ -116,13 +119,15 @@ defmodule WordlexWeb.GameLive do
   end
 
   @impl true
-  def handle_event("toggle_theme", _params, %{assigns: %{theme: :dark}} = socket) do
-    {:noreply, assign(socket, theme: :light)}
-  end
+  def handle_event("toggle_theme", _params, %{assigns: %{settings: settings}} = socket) do
+    theme =
+      case settings.theme do
+        :dark -> :light
+        :light -> :dark
+      end
 
-  @impl true
-  def handle_event("toggle_theme", _params, %{assigns: %{theme: :light}} = socket) do
-    {:noreply, assign(socket, theme: :dark)}
+    settings = %{settings | theme: theme}
+    {:noreply, socket |> assign(settings: settings) |> store_session()}
   end
 
   @impl true
@@ -140,13 +145,12 @@ defmodule WordlexWeb.GameLive do
   def handle_event("submit", %{"guess" => guess_string}, socket) do
     game = GameEngine.resolve(socket.assigns.game, guess_string)
     stats = update_stats(game, socket.assigns.stats)
-    data = Jason.encode!(%{game: game, stats: stats})
 
     {:noreply,
      socket
      |> assign(game: game, stats: stats, revealing?: true, valid_guess?: true)
      |> put_game_over_message(game)
-     |> push_event("session:store", %{key: @session_key, data: data})
+     |> store_session()
      |> push_event("keyboard:reset", %{})}
   end
 
@@ -176,6 +180,11 @@ defmodule WordlexWeb.GameLive do
       end
 
     put_message(socket, message)
+  end
+
+  defp store_session(%{assigns: assigns} = socket) do
+    data = assigns |> Map.take(~w(game stats settings)a) |> Jason.encode!()
+    push_event(socket, "session:store", %{key: @session_key, data: data})
   end
 
   defp new_game(), do: WordServer.word_to_guess() |> GameEngine.new()
@@ -213,5 +222,11 @@ defmodule WordlexWeb.GameLive do
   defp stats_from_json_string(data) do
     %{stats: stats_data} = Jason.decode!(data, keys: :atoms)
     struct!(Stats, stats_data)
+  end
+
+  defp settings_from_json_string(data) do
+    %{settings: settings_data} = Jason.decode!(data, keys: :atoms)
+    settings = struct!(Settings, settings_data)
+    %{settings | theme: String.to_existing_atom(settings.theme)}
   end
 end
