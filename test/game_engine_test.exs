@@ -2,16 +2,39 @@ defmodule GameEngineTest do
   use ExUnit.Case
   alias Wordlex.GameEngine
 
-  test "letter_map" do
-    map =
-      "sugar"
-      |> GameEngine.new()
-      |> GameEngine.resolve("saper")
-      |> GameEngine.resolve("cases")
-      |> GameEngine.resolve("suamr")
-      |> GameEngine.letter_map()
+  describe "letter map" do
+    test "letter_map distribution" do
+      map =
+        "sugar"
+        |> GameEngine.new()
+        |> GameEngine.resolve("saper")
+        |> GameEngine.resolve("cases")
+        |> GameEngine.resolve("suamr")
+        |> GameEngine.letter_map()
 
-    assert map == %{correct: ["R", "S", "U"], incorrect: ["A"], invalid: ["C", "E", "M", "P"]}
+      assert map == %{correct: ["R", "S", "U"], incorrect: ["A"], invalid: ["C", "E", "M", "P"]}
+    end
+
+    test "letter_map handles duplicated letters in guess" do
+      map =
+        "RATED"
+        |> GameEngine.new()
+        |> GameEngine.resolve("tyued")
+        |> GameEngine.resolve("qrtdd")
+        |> GameEngine.letter_map()
+
+      assert map == %{correct: ["D", "E", "T"], incorrect: ["R"], invalid: ["Q", "U", "Y"]}
+    end
+
+    test "letter_map handles solution with duplicated letters" do
+      map =
+        "ASCII"
+        |> GameEngine.new()
+        |> GameEngine.resolve("accdd")
+        |> GameEngine.letter_map()
+
+      assert map == %{correct: ["A", "C"], incorrect: [], invalid: ["D"]}
+    end
   end
 
   describe "gameplay" do
