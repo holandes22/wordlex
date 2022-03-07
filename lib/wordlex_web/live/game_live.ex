@@ -46,7 +46,7 @@ defmodule WordlexWeb.GameLive do
        stats: stats,
        revealing?: true,
        message: nil,
-       valid_guess?: nil,
+       valid_guess?: true,
        settings: settings
      )}
   end
