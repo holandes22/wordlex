@@ -26,15 +26,22 @@ defmodule Wordlex.GameEngine do
   def analyze(%Game{word: word}, guess) do
     guess = normalize(guess)
 
+    correct_ones =
+      guess
+      |> String.graphemes()
+      |> Enum.with_index()
+      |> Enum.filter(fn {char, index} -> char == String.at(word, index) end)
+
     for {char, index} <- guess |> String.graphemes() |> Enum.with_index() do
-      if char == String.at(word, index) do
-        %{char: char, state: :correct}
-      else
-        if String.contains?(word, char) do
+      cond do
+        char == String.at(word, index) ->
+          %{char: char, state: :correct}
+
+        String.contains?(word, char) and not Enum.member?(correct_ones, {char, index}) ->
           %{char: char, state: :incorrect}
-        else
+
+        true ->
           %{char: char, state: :invalid}
-        end
       end
     end
   end

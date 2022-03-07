@@ -52,5 +52,47 @@ defmodule GameEngineTest do
       assert not GameEngine.won?(game)
       assert GameEngine.guesses_left(game) == 0
     end
+
+    test "duplicate chars show invalid for second one if one is in correct position" do
+      game = GameEngine.new("ascii") |> GameEngine.resolve("accdd")
+
+      assert game.guesses == [
+               [
+                 %{char: "A", state: :correct},
+                 %{char: "C", state: :invalid},
+                 %{char: "C", state: :correct},
+                 %{char: "D", state: :invalid},
+                 %{char: "D", state: :invalid}
+               ]
+             ]
+    end
+
+    test "duplicate chars shows invalid for both if both are in invalid positions" do
+      game = GameEngine.new("ascii") |> GameEngine.resolve("cuuuc")
+
+      assert game.guesses == [
+               [
+                 %{char: "C", state: :incorrect},
+                 %{char: "U", state: :invalid},
+                 %{char: "U", state: :invalid},
+                 %{char: "U", state: :invalid},
+                 %{char: "C", state: :incorrect}
+               ]
+             ]
+    end
+
+    test "duplicate chars shows incorrect for the one in the incorrect position" do
+      game = GameEngine.new("ascii") |> GameEngine.resolve("aciiu")
+
+      assert game.guesses == [
+               [
+                 %{char: "A", state: :correct},
+                 %{char: "C", state: :incorrect},
+                 %{char: "I", state: :incorrect},
+                 %{char: "I", state: :correct},
+                 %{char: "U", state: :invalid}
+               ]
+             ]
+    end
   end
 end
