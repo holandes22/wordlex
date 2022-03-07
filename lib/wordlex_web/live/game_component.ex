@@ -213,7 +213,7 @@ defmodule WordlexWeb.GameComponent do
               </svg>
             </button>
           </div>
-          <%= render_slot(@inner_block) %>
+          <div class="mt-8"><%= render_slot(@inner_block) %></div>
         </div>
       </div>
     </div>
@@ -256,15 +256,18 @@ defmodule WordlexWeb.GameComponent do
   def settings_modal(assigns) do
     ~H"""
     <.modal modal_id="settings-modal">
-      <div class="flex flex-col items-center space-y-4">
-
-      <!-- Enabled: "bg-indigo-600", Not Enabled: "bg-gray-200" -->
-      <button phx-click="toggle_theme" type="button" class={"#{if(@checked?, do: "bg-green-600", else: "bg-gray-200")} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"} role="switch" aria-checked="false">
-        <span class="sr-only">Toggle theme</span>
-        <!-- Enabled: "translate-x-5", Not Enabled: "translate-x-0" -->
-        <span aria-hidden="true" class={"#{if(@checked?, do: "translate-x-5", else: "translate-x-0")} pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"}></span>
-      </button>
-
+      <div class="space-y-4">
+        <div class="pb-4 flex justify-between border-b border-gray-200 dark:border-gray-400">
+          <p class="text-md text-gray-800 font-semibold dark:text-white">Enable Dark Theme</p>
+          <button phx-click="toggle_theme" type="button" class={"#{if(@checked?, do: "bg-green-600", else: "bg-gray-200")} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"} role="switch" aria-checked="false">
+            <span class="sr-only">Toggle theme</span>
+            <span aria-hidden="true" class={"#{if(@checked?, do: "translate-x-5", else: "translate-x-0")} pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"}></span>
+          </button>
+        </div>
+        <div class="pb-4 flex justify-between border-b border-gray-200 dark:border-gray-400">
+          <p class="text-md text-gray-800 font-semibold dark:text-white">Source code</p>
+          <a href="https://github.com/holandes22/wordlex" target="_blank" class="text-gray-400 border-b border-gray-400 dark:text-gray-300 dark:border-gray-300">wordlex</a>
+        </div>
       </div>
     </.modal>
     """
