@@ -196,9 +196,7 @@ defmodule WordlexWeb.GameLive do
   end
 
   defp update_stats(game, stats) do
-    key =
-      abs(GameEngine.guesses_left(game) - 6) |> Integer.to_string() |> String.to_existing_atom()
-
+    key = abs(GameEngine.guesses_left(game) - 6) |> Integer.to_string()
     value = stats.guess_distribution[key] + 1
     %{stats | guess_distribution: Map.put(stats.guess_distribution, key, value)}
   end
@@ -221,7 +219,11 @@ defmodule WordlexWeb.GameLive do
 
   defp stats_from_json_string(data) do
     %{stats: stats_data} = Jason.decode!(data, keys: :atoms)
-    struct!(Stats, stats_data)
+
+    guess_distribution =
+      Map.new(stats_data.guess_distribution, fn {k, v} -> {Atom.to_string(k), v} end)
+
+    struct!(Stats, %{stats_data | guess_distribution: guess_distribution})
   end
 
   defp settings_from_json_string(data) do
