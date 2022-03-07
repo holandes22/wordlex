@@ -1,7 +1,7 @@
 defmodule WordlexWeb.GameLiveTest do
   use WordlexWeb.ConnCase, async: true
   import Phoenix.LiveViewTest
-  alias Wordlex.{GameEngine, Stats}
+  alias Wordlex.{GameEngine, Stats, Settings}
 
   setup %{conn: conn} do
     {:ok, game: GameEngine.new("sugar"), conn: conn}
@@ -43,8 +43,8 @@ defmodule WordlexWeb.GameLiveTest do
            |> render_hook("submit", %{guess: "bad"}) =~ "Not enough letters"
   end
 
-  defp put_session(socket, game, stats \\ Stats.new()) do
-    data = Jason.encode!(%{game: game, stats: stats})
+  defp put_session(socket, game, stats \\ Stats.new(), settings \\ Settings.new()) do
+    data = Jason.encode!(%{game: game, stats: stats, settings: settings})
     put_connect_params(socket, %{"restore" => data})
   end
 end
