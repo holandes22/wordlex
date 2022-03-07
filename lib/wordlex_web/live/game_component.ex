@@ -77,10 +77,17 @@ defmodule WordlexWeb.GameComponent do
   def guess_tile(assigns) do
     extra_classes =
       case assigns.state do
-        :empty -> "bg-white text-gray-800 border-2 border-gray-300"
-        :correct -> "text-white bg-green-500"
-        :incorrect -> "text-white bg-yellow-500"
-        :invalid -> "text-white bg-gray-500"
+        :empty ->
+          empty_tile_classes()
+
+        :correct ->
+          "text-white bg-green-500"
+
+        :incorrect ->
+          "text-white bg-yellow-500"
+
+        :invalid ->
+          "text-white bg-gray-500"
       end
 
     ~H"""
@@ -90,7 +97,7 @@ defmodule WordlexWeb.GameComponent do
 
   def input_guess_tile(assigns) do
     ~H"""
-    <.tile char="" id={"input-tile-#{@index}"} extra_classes="bg-white text-gray-800 border-2 border-gray-300" />
+    <.tile char="" id={"input-tile-#{@index}"} extra_classes={empty_tile_classes()} />
     """
   end
 
@@ -112,6 +119,10 @@ defmodule WordlexWeb.GameComponent do
       <% end %>
     </div>
     """
+  end
+
+  defp empty_tile_classes do
+    "bg-white text-gray-800 border-2 border-gray-300 dark:bg-gray-800 dark:border-gray-500 dark:text-white"
   end
 
   defp key(%{letter_map: letter_map, key: key} = assigns) do
@@ -194,7 +205,7 @@ defmodule WordlexWeb.GameComponent do
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 dark:bg-gray-800">
           <div class="absolute top-0 right-0 pt-4 pr-4">
-            <button type="button" phx-click={hide_modal(@modal_id)} class="bg-white rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="button" phx-click={hide_modal(@modal_id)} class="bg-white rounded-md text-gray-600 hover:text-gray-800 dark:bg-gray-800 dark:text-white dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->
               <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
