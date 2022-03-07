@@ -3,9 +3,9 @@ defmodule WordlexWeb.GameComponent do
 
   def alert(assigns) do
     ~H"""
-    <div class="rounded bg-gray-900 p-4">
+    <div class="rounded bg-gray-800 p-4 dark:bg-gray-50">
       <div class="flex items-center justify-center">
-        <p class="text-white text-xl"><%= @message %></p>
+        <p class="text-white text-xl dark:text-gray-800"><%= @message %></p>
       </div>
     </div>
     """
@@ -231,21 +231,21 @@ defmodule WordlexWeb.GameComponent do
     ~H"""
     <.modal modal_id="info-modal">
       <div class="flex flex-col items-center space-y-4">
-        <h2 class="text-gray-800 text-lg font-semibold uppercase">Statistics</h2>
+        <h2 class="text-gray-800 text-lg font-semibold uppercase dark:text-white">Statistics</h2>
         <div class="flex items-center space-x-4">
           <.stat value={played} label="Played" />
           <.stat value={win_percent} label="Win %" />
           <.stat value="N/A" label="Current Streak" />
           <.stat value="N/A" label="Max Streak" />
         </div>
-        <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Guess distribution</h2>
+        <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase dark:text-white">Guess distribution</h2>
         <%= if show_guess_dist? do %>
           <.guess_distribution dist_map={@stats.guess_distribution} />
         <% else %>
-          <pre class="text-gray-700 text-sm">No Data</pre>
+          <pre class="text-gray-700 text-sm dark:text-white">No Data</pre>
         <% end %>
         <%= if @show_countdown? do %>
-        <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase">Next word in</h2>
+        <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase dark:text-white">Next word in</h2>
           <.countdown />
         <% end %>
       </div>
@@ -276,8 +276,8 @@ defmodule WordlexWeb.GameComponent do
   def stat(assigns) do
     ~H"""
     <div class="flex flex-col items-center space-y-2">
-      <div class="text-gray-800 text-3xl font-semibold"><%= @value %></div>
-      <pre class="text-gray-700 text-xs break-words"><%= @label %></pre>
+      <div class="text-gray-800 text-3xl font-semibold dark:text-white"><%= @value %></div>
+      <pre class="text-gray-700 text-xs break-words dark:text-gray-200"><%= @label %></pre>
     </div>
     """
   end
@@ -287,7 +287,7 @@ defmodule WordlexWeb.GameComponent do
     <div class="space-y-1">
       <%= for {key, value} <- @dist_map do %>
         <div class="flex flex-row items-center justify-start space-x-2 font-mono">
-          <div class="text-sm text-gray-700"><%= key %></div>
+          <div class="text-sm text-gray-700 dark:text-white"><%= key %></div>
           <div class={"bg-gray-500 font-semibold text-white text-medium text-right #{dist_bar_width(value)}"}><div class="ml-1 mr-1"><%= value %></div></div>
         </div>
       <% end %>
@@ -297,7 +297,7 @@ defmodule WordlexWeb.GameComponent do
 
   def countdown(assigns) do
     ~H"""
-    <div id="countdown" phx-hook="Countdown" class="h-8 font-mono"></div>
+    <div id="countdown" phx-hook="Countdown" class="h-8 font-mono dark:text-white"></div>
     """
   end
 
