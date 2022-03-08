@@ -56,43 +56,49 @@ defmodule GameEngineTest do
     test "duplicate chars show invalid for second one if one is in correct position" do
       game = GameEngine.new("ascii") |> GameEngine.resolve("accdd")
 
-      assert game.guesses == [
-               [
-                 %{char: "A", state: :correct},
-                 %{char: "C", state: :invalid},
-                 %{char: "C", state: :correct},
-                 %{char: "D", state: :invalid},
-                 %{char: "D", state: :invalid}
-               ]
-             ]
+      expected = [
+        [
+          %{char: "A", state: :correct},
+          %{char: "C", state: :invalid},
+          %{char: "C", state: :correct},
+          %{char: "D", state: :invalid},
+          %{char: "D", state: :invalid}
+        ]
+      ]
+
+      assert game.guesses == expected
     end
 
     test "duplicate chars shows invalid for both if both are in invalid positions" do
       game = GameEngine.new("ascii") |> GameEngine.resolve("cuuuc")
 
-      assert game.guesses == [
-               [
-                 %{char: "C", state: :incorrect},
-                 %{char: "U", state: :invalid},
-                 %{char: "U", state: :invalid},
-                 %{char: "U", state: :invalid},
-                 %{char: "C", state: :incorrect}
-               ]
-             ]
+      expected = [
+        [
+          %{char: "C", state: :incorrect},
+          %{char: "U", state: :invalid},
+          %{char: "U", state: :invalid},
+          %{char: "U", state: :invalid},
+          %{char: "C", state: :incorrect}
+        ]
+      ]
+
+      assert game.guesses == expected
     end
 
     test "duplicate chars shows incorrect for the one in the incorrect position" do
       game = GameEngine.new("ascii") |> GameEngine.resolve("aciiu")
 
-      assert game.guesses == [
-               [
-                 %{char: "A", state: :correct},
-                 %{char: "C", state: :incorrect},
-                 %{char: "I", state: :incorrect},
-                 %{char: "I", state: :correct},
-                 %{char: "U", state: :invalid}
-               ]
-             ]
+      expected = [
+        [
+          %{char: "A", state: :correct},
+          %{char: "C", state: :incorrect},
+          %{char: "I", state: :incorrect},
+          %{char: "I", state: :correct},
+          %{char: "U", state: :invalid}
+        ]
+      ]
+
+      assert game.guesses == expected
     end
   end
 end

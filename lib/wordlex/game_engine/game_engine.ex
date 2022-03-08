@@ -32,12 +32,33 @@ defmodule Wordlex.GameEngine do
       |> Enum.with_index()
       |> Enum.filter(fn {char, index} -> char == String.at(word, index) end)
 
+    # Deal with the case a letter appears more times than in the solution
+    # (if solution contains two "C" but we have 3 "C" in the guess for example)
+    maybe_incorrect_ones =
+      guess
+      |> String.graphemes()
+      |> Enum.with_index()
+      |> Enum.filter(fn {char, index} ->
+        String.contains?(word, char) and not Enum.member?(correct_ones, {char, index})
+      end)
+
+    solution_frequencies = word |> String.graphemes() |> Enum.frequencies()
+    guess_frequencies = guess |> String.graphemes() |> Enum.frequencies()
+
+    incorrect_ones =
+      Enum.reject(maybe_incorrect_ones, fn {char, _index} ->
+        char_already_in_correct? =
+          Enum.find(correct_ones, fn {correct_char, _index} -> correct_char == char end)
+
+        guess_frequencies[char] > solution_frequencies[char] and char_already_in_correct?
+      end)
+
     for {char, index} <- guess |> String.graphemes() |> Enum.with_index() do
       cond do
-        char == String.at(word, index) ->
+        Enum.member?(correct_ones, {char, index}) ->
           %{char: char, state: :correct}
 
-        String.contains?(word, char) and not Enum.member?(correct_ones, {char, index}) ->
+        Enum.member?(incorrect_ones, {char, index}) ->
           %{char: char, state: :incorrect}
 
         true ->
@@ -87,8 +108,15 @@ defmodule Wordlex.GameEngine do
 
     # correct wins over incorrect, so if a letter appears in both,
     # we need to remove it from that list
+    # similarly, correct and incorrect win over invalid
     incorrect = Enum.filter(map.incorrect, fn letter -> !Enum.member?(map.correct, letter) end)
-    %{map | incorrect: incorrect}
+
+    invalid =
+      Enum.filter(map.invalid, fn letter ->
+        !Enum.member?(map.correct, letter) and !Enum.member?(map.incorrect, letter)
+      end)
+
+    %{map | incorrect: incorrect, invalid: invalid}
   end
 
   defp normalize(guess) when is_binary(guess), do: String.upcase(guess)
