@@ -197,8 +197,15 @@ defmodule WordlexWeb.GameComponent do
   end
 
   def modal(assigns) do
+    class =
+      if Map.get(assigns, :open?, false) do
+        "fixed z-10 inset-0 overflow-y-auto"
+      else
+        "fixed z-10 inset-0 overflow-y-auto hidden"
+      end
+
     ~H"""
-    <div id={@modal_id} class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id={@modal_id} class={class} aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <!-- This element is to trick the browser into centering the modal contents. -->
@@ -229,7 +236,7 @@ defmodule WordlexWeb.GameComponent do
     win_percent = floor(won_count / max(played, 1) * 100)
 
     ~H"""
-    <.modal modal_id="info-modal">
+    <.modal modal_id="info-modal" open?={@open?}>
       <div class="flex flex-col items-center space-y-4">
         <h2 class="text-gray-800 text-lg font-semibold uppercase dark:text-white">Statistics</h2>
         <div class="flex items-center space-x-4">

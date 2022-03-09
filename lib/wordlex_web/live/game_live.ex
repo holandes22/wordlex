@@ -47,7 +47,8 @@ defmodule WordlexWeb.GameLive do
        revealing?: true,
        message: nil,
        valid_guess?: true,
-       settings: settings
+       settings: settings,
+       show_info_modal?: game.over?
      )}
   end
 
@@ -104,9 +105,7 @@ defmodule WordlexWeb.GameLive do
             <div class="text-center"><%= @game.word %></div>
           </div>
 
-
-
-          <.info_modal stats={@stats} show_countdown?={@game.over?}/>
+          <.info_modal stats={@stats} show_countdown?={@game.over?} open?={@show_info_modal?} />
           <.settings_modal checked?={@settings.theme == :dark}/>
 
 
@@ -149,7 +148,8 @@ defmodule WordlexWeb.GameLive do
     {:noreply,
      socket
      |> assign(game: game, stats: stats, revealing?: true, valid_guess?: true)
-     |> put_game_over_message(game)
+     |> maybe_put_game_over_message(game)
+     |> maybe_show_info_dialog(game)
      |> store_session()
      |> push_event("keyboard:reset", %{})}
   end
@@ -158,17 +158,31 @@ defmodule WordlexWeb.GameLive do
   def handle_info(:clear_message, socket),
     do: {:noreply, assign(socket, message: nil, revealing?: false)}
 
+  @impl true
+  def handle_info(:show_info_modal, socket) do
+    {:noreply, assign(socket, show_info_modal?: true)}
+  end
+
   defp put_message(socket, message) do
     Process.send_after(self(), :clear_message, 2000)
     assign(socket, message: message)
   end
 
-  defp put_game_over_message(socket, %{over?: false}), do: socket
+  defp maybe_show_info_dialog(socket, %{over?: false}) do
+    socket
+  end
 
-  defp put_game_over_message(socket, %{result: :lost, word: word}),
+  defp maybe_show_info_dialog(socket, %{over?: true}) do
+    Process.send_after(self(), :show_info_modal, 2000)
+    socket
+  end
+
+  defp maybe_put_game_over_message(socket, %{over?: false}), do: socket
+
+  defp maybe_put_game_over_message(socket, %{result: :lost, word: word}),
     do: put_message(socket, "The solution was #{word}")
 
-  defp put_game_over_message(socket, %{} = game) do
+  defp maybe_put_game_over_message(socket, %{} = game) do
     message =
       case GameEngine.guesses_left(game) do
         0 -> "Phew!"
