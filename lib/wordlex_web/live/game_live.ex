@@ -4,6 +4,7 @@ defmodule WordlexWeb.GameLive do
   alias Wordlex.{GameEngine, WordServer, Stats, Settings, Game}
 
   @session_key "app:session"
+  @session_version 1
 
   @impl true
   def mount(_params, _session, socket) do
@@ -154,7 +155,7 @@ defmodule WordlexWeb.GameLive do
        |> store_session()
        |> push_event("keyboard:reset", %{})}
     else
-      {:noreply, put_message(socket, "Not in word list") |> assign(valid_guess?: false)}
+      {:noreply, socket |> put_message("Not in word list") |> assign(valid_guess?: false)}
     end
   end
 
@@ -201,7 +202,12 @@ defmodule WordlexWeb.GameLive do
   end
 
   defp store_session(%{assigns: assigns} = socket) do
-    data = assigns |> Map.take(~w(game stats settings)a) |> Jason.encode!()
+    data =
+      assigns
+      |> Map.take(~w(game stats settings)a)
+      |> Map.put_new(:version, @session_version)
+      |> Jason.encode!()
+
     push_event(socket, "session:store", %{key: @session_key, data: data})
   end
 

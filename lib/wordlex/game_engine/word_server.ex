@@ -35,6 +35,7 @@ defmodule Wordlex.WordServer do
 
   @impl true
   def handle_call({:valid_guess?, guess}, _from, state) do
+    guess = String.downcase(guess)
     valid? = Enum.member?(state.words, guess) || Enum.member?(state.valid_guesses, guess)
     {:reply, valid?, state}
   end
