@@ -189,14 +189,14 @@ defmodule WordlexWeb.GameComponent do
     size_classes =
       case key do
         "Backspace" -> "h-10 w-10 sm:w-18 sm:h-12"
-        "Enter" -> "h-10 w-14 sm:w-18 sm:h-12"
+        "Enter" -> "h-10 w-18 sm:h-12"
         _ -> "h-10 w-8 sm:w-10 sm:h-12"
       end
 
     ~H"""
     <button
       phx-click={JS.dispatch("keyboard:clicked", to: "#keyboard-input", detail: %{ key: @key })}
-      class={"#{size_classes} #{classes} p-2 rounded text-gray-700 text-sm flex font-bold justify-center items-center uppercase focus:ring-2"}
+      class={"#{size_classes} #{classes} p-2 rounded text-gray-700 text-md flex font-bold justify-center items-center uppercase focus:ring-2"}
     >
       <%= body %>
     </button>
