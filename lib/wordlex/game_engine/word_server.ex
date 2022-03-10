@@ -1,5 +1,6 @@
 defmodule Wordlex.WordServer do
   use GenServer
+  alias Wordlex.Constants
 
   @day_in_seconds 86400
   ## API
@@ -20,10 +21,7 @@ defmodule Wordlex.WordServer do
 
   @impl true
   def init(:ok) do
-    # List of words taken from https://github.com/cwackerfuss/react-wordle/blob/main/src/constants
-    words = Path.expand("./words.txt", __DIR__) |> File.read!() |> String.split()
-    valid_guesses = Path.expand("./valid_guesses.txt", __DIR__) |> File.read!() |> String.split()
-    state = %{words: words, valid_guesses: valid_guesses}
+    state = %{words: Constants.words(), valid_guesses: Constants.valid_guesses()}
     {:ok, state}
   end
 
