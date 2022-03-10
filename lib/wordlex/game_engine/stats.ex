@@ -3,6 +3,7 @@ defmodule Wordlex.Stats do
   defstruct current_streak: 0,
             max_streak: 0,
             lost: 0,
+            guessed_at_attempt: nil,
             guess_distribution: %{
               "1" => 0,
               "2" => 0,
@@ -16,6 +17,7 @@ defmodule Wordlex.Stats do
           current_streak: Integer.t(),
           max_streak: Integer.t(),
           lost: Integer.t(),
+          guessed_at_attempt: Integer.t() | nil,
           guess_distribution: %{required(String.t()) => Integer.t()}
         }
 

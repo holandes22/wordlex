@@ -247,7 +247,7 @@ defmodule WordlexWeb.GameComponent do
         </div>
         <h2 class="mt-2 text-gray-800 text-lg font-semibold uppercase dark:text-white">Guess distribution</h2>
         <%= if show_guess_dist? do %>
-          <.guess_distribution dist_map={@stats.guess_distribution} />
+          <.guess_distribution stats={@stats}/>
         <% else %>
           <pre class="text-gray-700 text-sm dark:text-white">No Data</pre>
         <% end %>
@@ -292,10 +292,10 @@ defmodule WordlexWeb.GameComponent do
   def guess_distribution(assigns) do
     ~H"""
     <div class="space-y-1">
-      <%= for {key, value} <- @dist_map do %>
+      <%= for {key, value} <- @stats.guess_distribution do %>
         <div class="flex flex-row items-center justify-start space-x-2 font-mono">
           <div class="text-sm text-gray-700 dark:text-white"><%= key %></div>
-          <div class={"bg-gray-500 font-semibold text-white text-medium text-right #{dist_bar_width(value)}"}><div class="ml-1 mr-1"><%= value %></div></div>
+          <div class={"#{stat_bg_class(@stats, key)} font-semibold text-white text-medium text-right #{dist_bar_width(value)}"}><div class="ml-1 mr-1"><%= value %></div></div>
         </div>
       <% end %>
     </div>
@@ -306,6 +306,14 @@ defmodule WordlexWeb.GameComponent do
     ~H"""
     <div id="countdown" phx-hook="Countdown" class="h-8 font-mono dark:text-white"></div>
     """
+  end
+
+  defp stat_bg_class(%{guessed_at_attempt: guessed_at_attempt}, key) do
+    if guessed_at_attempt != nil and Integer.to_string(guessed_at_attempt) == key do
+      "bg-green-600"
+    else
+      "bg-gray-500"
+    end
   end
 
   defp dist_bar_width(0), do: "w-[1rem]"

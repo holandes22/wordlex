@@ -210,8 +210,17 @@ defmodule WordlexWeb.GameLive do
   end
 
   defp update_stats(game, stats) do
-    key = abs(GameEngine.guesses_left(game) - 6) |> Integer.to_string()
+    guessed_at_attempt = abs(GameEngine.guesses_left(game) - 6)
+    key = Integer.to_string(guessed_at_attempt)
     value = stats.guess_distribution[key] + 1
+
+    stats =
+      if GameEngine.won?(game) do
+        %{stats | guessed_at_attempt: guessed_at_attempt}
+      else
+        stats
+      end
+
     %{stats | guess_distribution: Map.put(stats.guess_distribution, key, value)}
   end
 
