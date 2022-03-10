@@ -35,12 +35,20 @@ defmodule WordlexWeb.GameLiveTest do
            |> render_hook("submit", %{guess: "wrong"}) =~ "The solution was #{game.word}"
   end
 
-  test "short guess renders a message", %{conn: conn, game: game} do
+  test "short guess renders an error message", %{conn: conn, game: game} do
     {:ok, view, _html} = conn |> put_session(game) |> live("/")
 
     assert view
            |> element("#keyboard-input")
            |> render_hook("submit", %{guess: "bad"}) =~ "Not enough letters"
+  end
+
+  test "invalid guess renders an error message", %{conn: conn, game: game} do
+    {:ok, view, _html} = conn |> put_session(game) |> live("/")
+
+    assert view
+           |> element("#keyboard-input")
+           |> render_hook("submit", %{guess: "aaaaa"}) =~ "Not in word list"
   end
 
   test "info dialog is hidden at start if game is not over", %{conn: conn, game: game} do

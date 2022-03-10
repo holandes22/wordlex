@@ -135,23 +135,27 @@ defmodule WordlexWeb.GameLive do
   end
 
   @impl true
-  def handle_event("submit", %{"guess" => guess_string}, socket)
-      when byte_size(guess_string) < 5 do
-    {:noreply, put_message(socket, "Not enough letters") |> assign(valid_guess?: false)}
+  def handle_event("submit", %{"guess" => guess}, socket)
+      when byte_size(guess) < 5 do
+    {:noreply, socket |> put_message("Not enough letters") |> assign(valid_guess?: false)}
   end
 
   @impl true
-  def handle_event("submit", %{"guess" => guess_string}, socket) do
-    game = GameEngine.resolve(socket.assigns.game, guess_string)
-    stats = update_stats(game, socket.assigns.stats)
+  def handle_event("submit", %{"guess" => guess}, socket) do
+    if WordServer.valid_guess?(guess) do
+      game = GameEngine.resolve(socket.assigns.game, guess)
+      stats = update_stats(game, socket.assigns.stats)
 
-    {:noreply,
-     socket
-     |> assign(game: game, stats: stats, revealing?: true, valid_guess?: true)
-     |> maybe_put_game_over_message(game)
-     |> maybe_show_info_dialog(game)
-     |> store_session()
-     |> push_event("keyboard:reset", %{})}
+      {:noreply,
+       socket
+       |> assign(game: game, stats: stats, revealing?: true, valid_guess?: true)
+       |> maybe_put_game_over_message(game)
+       |> maybe_show_info_dialog(game)
+       |> store_session()
+       |> push_event("keyboard:reset", %{})}
+    else
+      {:noreply, put_message(socket, "Not in word list") |> assign(valid_guess?: false)}
+    end
   end
 
   @impl true

@@ -20,6 +20,7 @@ defmodule Wordlex.WordServer do
 
   @impl true
   def init(:ok) do
+    # List of words taken from https://github.com/cwackerfuss/react-wordle/blob/main/src/constants
     words = Path.expand("./words.txt", __DIR__) |> File.read!() |> String.split()
     valid_guesses = Path.expand("./valid_guesses.txt", __DIR__) |> File.read!() |> String.split()
     state = %{words: words, valid_guesses: valid_guesses}
@@ -33,13 +34,8 @@ defmodule Wordlex.WordServer do
   end
 
   @impl true
-  def handle_call(
-        {:valid_guess?, guess},
-        _from,
-        %{words: words, valid_guesses: valid_guesses} = state
-      ) do
-    # TODO: normalize all to upper
-    valid? = Enum.member?(words, guess) || Enum.member?(valid_guesses, guess)
+  def handle_call({:valid_guess?, guess}, _from, state) do
+    valid? = Enum.member?(state.words, guess) || Enum.member?(state.valid_guesses, guess)
     {:reply, valid?, state}
   end
 
