@@ -13,9 +13,10 @@ defmodule Wordlex.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Wordlex.PubSub},
       # Start the Endpoint (http/https)
-      WordlexWeb.Endpoint
+      WordlexWeb.Endpoint,
       # Start a worker by calling: Wordlex.Worker.start_link(arg)
       # {Wordlex.Worker, arg}
+      {Wordlex.WordServer, name: Wordlex.WordServer}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
