@@ -62,17 +62,16 @@ defmodule WordlexWeb.GameLiveTest do
 
   test "info dialog is shown at start if game is over", %{conn: conn} do
     game = "sugar" |> GameEngine.new() |> GameEngine.resolve("sugar")
-    {:ok, view, _html} = conn |> put_session(game) |> live("/")
+    {:ok, _view, html} = conn |> put_session(game) |> live("/")
 
-    {:ok, document} = view |> render() |> Floki.parse_document()
+    {:ok, document} = Floki.parse_document(html)
 
-    # need to check after conn, so need to find a way to render
     [class] = document |> Floki.find("#info-modal") |> Floki.attribute("class")
     assert class =~ "block"
   end
 
   defp put_session(socket, game, stats \\ Stats.new(), settings \\ Settings.new()) do
-    data = Jason.encode!(%{game: game, stats: stats, settings: settings})
+    data = Jason.encode!(%{game: game, stats: stats, settings: settings, version: 1})
     put_connect_params(socket, %{"restore" => data})
   end
 end

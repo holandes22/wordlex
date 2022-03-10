@@ -57,6 +57,8 @@ defmodule WordlexWeb.GameLive do
   def render(assigns) do
     ~H"""
     <div class={"#{if(@settings.theme == :dark, do: "dark", else: "")}"}>
+      <.info_modal stats={@stats} show_countdown?={@game.over?} open?={@show_info_modal?} />
+      <.settings_modal checked?={@settings.theme == :dark}/>
       <div id="game" phx-hook="Session" class="flex flex-col items-center justify-between h-screen dark:bg-gray-800">
           <div class="flex flex-col items-center">
             <div class="w-screen border-b border-gray-300 md:w-96">
@@ -102,14 +104,7 @@ defmodule WordlexWeb.GameLive do
               revealing?={length(@game.guesses) > 0 && @revealing?}
               game_over?={@game.over?}
             />
-            <%# TODO: remove word to guess %>
-            <div class="text-center"><%= @game.word %></div>
           </div>
-
-          <.info_modal stats={@stats} show_countdown?={@game.over?} open?={@show_info_modal?} />
-          <.settings_modal checked?={@settings.theme == :dark}/>
-
-
           <div class="mb-2">
             <.keyboard letter_map={GameEngine.letter_map(@game)} />
           </div>
