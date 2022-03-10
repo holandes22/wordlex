@@ -1,7 +1,7 @@
 defmodule WordlexWeb.GameLive do
   use WordlexWeb, :live_view
   import WordlexWeb.GameComponent
-  alias Wordlex.{GameEngine, WordServer, Stats, Settings}
+  alias Wordlex.{GameEngine, WordServer, Stats, Settings, Game}
 
   @session_key "app:session"
 
@@ -130,7 +130,7 @@ defmodule WordlexWeb.GameLive do
   end
 
   @impl true
-  def handle_event("submit", _params, %{assigns: %{game: %{over?: true}}} = socket) do
+  def handle_event("submit", _params, %{assigns: %{game: %Game{over?: true}}} = socket) do
     {:noreply, socket}
   end
 
