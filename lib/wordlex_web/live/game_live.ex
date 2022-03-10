@@ -57,17 +57,14 @@ defmodule WordlexWeb.GameLive do
   def render(assigns) do
     ~H"""
     <div class={"#{if(@settings.theme == :dark, do: "dark", else: "")}"}>
+      <.header />
+      <%= if @message do %>
+        <div class="mt-2 flex flex-col items-center"><.alert message={@message} /></div>
+      <% end %>
 
-
-      <div id="game" phx-hook="Session" class="flex flex-col items-center justify-between h-screen dark:bg-gray-800">
+      <div id="game" phx-hook="Session" class="flex flex-col items-center space-y-10 md:space-y-20 dark:bg-gray-800">
           <.info_modal stats={@stats} show_countdown?={@game.over?} open?={@show_info_modal?} />
           <.settings_modal checked?={@settings.theme == :dark}/>
-          <.header />
-
-          <%= if @message do %>
-            .alert message={@message} />
-          <% end %>
-
           <div>
             <.grid
               past_guesses={Enum.reverse(@game.guesses)}
@@ -77,9 +74,7 @@ defmodule WordlexWeb.GameLive do
             />
           </div>
 
-          <div class="mb-2">
-            <.keyboard letter_map={GameEngine.letter_map(@game)} />
-          </div>
+          <.keyboard letter_map={GameEngine.letter_map(@game)} />
         </div>
     </div>
     """
