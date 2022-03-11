@@ -57,22 +57,26 @@ defmodule WordlexWeb.GameLive do
   def render(assigns) do
     ~H"""
     <div class={"#{if(@settings.theme == :dark, do: "dark", else: "")}"}>
-      <div class="dark:bg-gray-900 h-screen overflow-y-hidden sm:overflow-y-auto">
+      <div class="dark:bg-gray-900 h-screen">
         <.info_modal stats={@stats} show_countdown?={@game.over?} open?={@show_info_modal?} />
         <.settings_modal checked?={@settings.theme == :dark}/>
-        <.header />
-        <%= if @message do %>
-          <div class="mt-4 flex flex-col items-center"><.alert message={@message} /></div>
-        <% end %>
 
-        <div id="game" phx-hook="Session" class="mt-8 flex flex-col items-center space-y-10 md:space-y-20 ">
-          <.grid
-            past_guesses={Enum.reverse(@game.guesses)}
-            valid_guess?={@valid_guess?}
-            revealing?={length(@game.guesses) > 0 && @revealing?}
-            game_over?={@game.over?}
-          />
-          <.keyboard letter_map={GameEngine.letter_map(@game)} />
+        <div id="game" phx-hook="Session" class="flex flex-col items-center">
+          <.header />
+
+          <%= if @message do %>
+            <div class="mt-4 flex flex-col items-center"><.alert message={@message} /></div>
+          <% end %>
+
+          <div class="mt-4 grow space-y-4 md:mt-10 md:space-y-20">
+            <.grid
+              past_guesses={Enum.reverse(@game.guesses)}
+              valid_guess?={@valid_guess?}
+              revealing?={length(@game.guesses) > 0 && @revealing?}
+              game_over?={@game.over?}
+            />
+            <.keyboard letter_map={GameEngine.letter_map(@game)} />
+          </div>
         </div>
       </div>
     </div>

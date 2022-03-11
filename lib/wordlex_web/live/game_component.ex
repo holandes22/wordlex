@@ -13,7 +13,7 @@ defmodule WordlexWeb.GameComponent do
             </svg>
           </button>
 
-          <h1 class="p-2 text-center text-3xl text-gray-800 font-semibold uppercase tracking-widest dark:text-white">Wordlex</h1>
+          <h1 class="p-2 text-center text-xl text-gray-800 font-semibold uppercase tracking-widest dark:text-white md:text-3xl">Wordlex</h1>
 
           <div>
             <button type="button" phx-click={show_settings_modal()}>
@@ -31,7 +31,7 @@ defmodule WordlexWeb.GameComponent do
           </div>
         </div>
       </div>
-      <p class="p-1 text-md text-gray-400 font-medium dark:text-gray-300">
+      <p class="p-1 text-sm text-gray-400 font-medium dark:text-gray-300 md:text-md">
         A <a href="https://www.nytimes.com/games/wordle/index.html" target="_blank" class="uppercase border-b border-gray-400">Wordle</a> clone written in elixir
       </p>
     </div>
@@ -105,7 +105,7 @@ defmodule WordlexWeb.GameComponent do
 
   def tile(assigns) do
     ~H"""
-    <div id={@id} class={"w-16 h-16 flex justify-center items-center #{@extra_classes}"}>
+    <div id={@id} class={"w-14 h-14 flex justify-center items-center #{@extra_classes} sm:w-16 sm:h-16"}>
       <div class="text-3xl uppercase font-bold"><%= @char %></div>
     </div>
     """
@@ -188,7 +188,7 @@ defmodule WordlexWeb.GameComponent do
 
     size_classes =
       case key do
-        "Backspace" -> "h-10 w-10 sm:w-18 sm:h-12"
+        "Backspace" -> "h-10 w-8 sm:w-16 sm:h-12"
         "Enter" -> "h-10 w-18 sm:h-12"
         _ -> "h-10 w-8 sm:w-10 sm:h-12"
       end
